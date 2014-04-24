@@ -1,0 +1,6 @@
+REC
+S .
+B ../_build/example/
+PKG bencode
+PKG yojson
+PKG sexplib

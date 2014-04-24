@@ -1,0 +1,4 @@
+S .
+B ../_build/bencode/
+REC
+PKG bencode

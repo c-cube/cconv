@@ -1,0 +1,30 @@
+# OASIS_START
+# DO NOT EDIT (digest: 2e641525cc2bb12682079f19dba2624c)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library cconv
+"cconv.cmxs": use_cconv
+# Library cconv_sexp
+"sexp/cconv_sexp.cmxs": use_cconv_sexp
+<sexp/*.ml{,i}>: pkg_sexplib
+<sexp/*.ml{,i}>: use_cconv
+# Library cconv_yojson
+"yojson/cconv_yojson.cmxs": use_cconv_yojson
+<yojson/*.ml{,i}>: pkg_yojson
+<yojson/*.ml{,i}>: use_cconv
+# Library cconv_bencode
+"bencode/cconv_bencode.cmxs": use_cconv_bencode
+<bencode/*.ml{,i}>: pkg_bencode
+<bencode/*.ml{,i}>: use_cconv
+# OASIS_STOP
