@@ -1,4 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: d57440c3b8532ca66e1fdd6542f1dff7)
+# DO NOT EDIT (digest: 56833808ef5fe62d18a611cbc8a82fe6)
 CConv
+bencode/CConvBencode
+sexp/CConvSexp
+yojson/CConvYojson
 # OASIS_STOP

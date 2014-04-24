@@ -28,3 +28,4 @@
 <bencode/*.ml{,i}>: pkg_bencode
 <bencode/*.ml{,i}>: use_cconv
 # OASIS_STOP
+true: bin_annot

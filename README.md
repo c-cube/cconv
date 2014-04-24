@@ -3,6 +3,9 @@ CConv
 
 Combinators for Type Conversion in OCaml.
 
+Documentation can be found [here](http://cedeela.fr/~simon/software/cconv/CConv.html),
+and some toy examples in the `example` directory.
+
 ## Build
 
 There are no dependencies. This should work with OCaml>=4.00.1.

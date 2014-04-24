@@ -64,7 +64,7 @@ Document doc
   Build$:               flag(docs)
   Install$:             flag(docs)
   XOCamlbuildPath:      .
-  XOCamlbuildLibraries: cconv
+  XOCamlbuildLibraries: cconv,cconv.bencode,cconv.sexp,cconv.yojson
 
 SourceRepository head
   Type: git
