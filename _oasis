@@ -1,0 +1,72 @@
+OASISFormat: 0.3
+Name:        cconv
+Version:     0.1
+Homepage:    https://github.com/c-cube/cconv
+Authors:     Simon Cruanes
+License:     BSD3
+LicenseFile: LICENSE
+Plugins:     META (0.3), DevFiles (0.3)
+BuildTools:  ocamlbuild
+
+Synopsis:    Combinators for Conversion
+
+Flag "sexp"
+  Description:  Build and install the interface to Sexplib (requires Sexplib)
+  Default:      false
+
+Flag "yojson"
+  Description:  Build and install the interface to Yojson (requires Yojson)
+  Default:      false
+
+Flag "bencode"
+  Description:  Build and install the interface to Bencode (requires Bencode)
+  Default:      false
+
+Library "cconv"
+  Path:             .
+  Pack:             false
+  Modules:          CConv
+
+Library "cconv_sexp"
+  Path:             sexp
+  Modules:          CConvSexp
+  Build$:           flag(sexp)
+  Install$:         flag(sexp)
+  FindlibName:      sexp
+  FindlibParent:    cconv
+  BuildDepends:     cconv,sexplib
+  XMETARequires:    cconv,sexplib
+
+Library "cconv_yojson"
+  Path:             yojson
+  Modules:          CConvYojson
+  Build$:           flag(yojson)
+  Install$:         flag(yojson)
+  FindlibName:      yojson
+  FindlibParent:    cconv
+  BuildDepends:     cconv,yojson
+  XMETARequires:    cconv,yojson
+
+Library "cconv_bencode"
+  Path:             bencode
+  Modules:          CConvBencode
+  Build$:           flag(bencode)
+  Install$:         flag(bencode)
+  FindlibName:      bencode
+  FindlibParent:    cconv
+  BuildDepends:     cconv,bencode
+  XMETARequires:    cconv,bencode
+
+Document doc
+  Title:                Documentation for CConv
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Build$:               flag(docs)
+  Install$:             flag(docs)
+  XOCamlbuildPath:      .
+  XOCamlbuildLibraries: cconv
+
+SourceRepository head
+  Type: git
+  Location: https://github.com/c-cube/cconv
+  Browser: https://github.com/c-cube/cconv/tree/master/src
