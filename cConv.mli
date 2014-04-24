@@ -30,7 +30,7 @@ exception ConversionFailure of string
 
 val report_error : ('a, Buffer.t, unit, 'b) format4 -> 'a
 (** Helper to report conversion errors.
-    @raise ConversionFailure *)
+    @raise ConversionFailure if the conversion failed (!) *)
 
 (** {6 Universal sink}
 

@@ -41,6 +41,6 @@ configure:
 # OASIS_STOP
 
 push_doc: all doc
-	scp -r cconv.docdir/* cedeela.fr:~/simon/root/software/cconv/
+	scp -r doc.docdir/* cedeela.fr:~/simon/root/software/cconv/
 
 .PHONY: benchs tests
