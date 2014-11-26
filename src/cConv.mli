@@ -157,7 +157,7 @@ end
 (** {6 Universal source}
 
 source from type 'a, where 'a is typically a serialization
-format. This is used to translate from 'a to some other type. 
+format. This is used to translate from 'a to some other type.
 A universal format should use the provided combinators to
 interface with {!Sink.t} values *)
 module UniversalSource : sig

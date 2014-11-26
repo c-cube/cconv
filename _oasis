@@ -23,7 +23,7 @@ Flag "bencode"
   Default:      false
 
 Library "cconv"
-  Path:             .
+  Path:             src
   Pack:             false
   Modules:          CConv
 
