@@ -18,32 +18,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *)
 
+type 'a or_error = [ `Ok of 'a | `Error of string ]
 type t = Bencode.t
 
 let source =
-  let module U = CConv.UniversalSource in
-  let rec visit : type b. b CConv.Sink.t -> t -> b =
-  fun sink x -> match x, CConv.Sink.expected sink with
-    | Bencode.String s, CConv.Sink.ExpectSum -> U.sum ~src sink s []
-    | Bencode.List (Bencode.String name :: l), CConv.Sink.ExpectSum ->
-        U.sum ~src sink name l
-    | Bencode.Dict l, _ -> U.record ~src sink l
-    | Bencode.String s, _ -> U.string_ sink s
-    | Bencode.List [], CConv.Sink.ExpectUnit -> U.unit_ sink
-    | Bencode.List l, _ -> U.list_ ~src sink l
-    | Bencode.Integer 0, CConv.Sink.ExpectUnit -> U.unit_ sink
-    | Bencode.Integer i, _ -> U.int_ sink i
-  and src = { U.visit=visit; } in
+  let module D = CConv.Decode in
+  let rec src = {D.emit=fun dec b -> match b with
+    | Bencode.String s -> dec.D.accept_string src s
+    | Bencode.Integer i -> dec.D.accept_int src i
+    | Bencode.List l -> dec.D.accept_list src l
+    | Bencode.Dict l -> dec.D.accept_record src l
+  } in
   src
 
-let sink =
-  let open CConv.UniversalSink in
-  { unit_ = Bencode.Integer 0;
-    bool_ = (fun b -> Bencode.Integer (if b then 1 else 0));
-    float_ = (fun f -> Bencode.String (string_of_float f));
-    int_ = (fun i -> Bencode.Integer i);
-    string_ = (fun s -> Bencode.String s);
-    list_ = (fun l -> Bencode.List l);
+let target =
+  let module E = CConv.Encode in
+  { E.unit = Bencode.Integer 0;
+    bool = (fun b -> Bencode.Integer (if b then 1 else 0));
+    float = (fun f -> Bencode.String (string_of_float f));
+    int = (fun i -> Bencode.Integer i);
+    string = (fun s -> Bencode.String s);
+    list = (fun l -> Bencode.List l);
     record = (fun l -> Bencode.Dict l);
     tuple = (fun l -> Bencode.List l);
     sum = (fun name l -> match l with
@@ -53,19 +48,22 @@ let sink =
 
 let bencode_to_string = Bencode.encode_to_string
 
-let into src x = CConv.into src sink x
+let encode src x = CConv.encode src target x
 
-let from sink x = CConv.from source sink x
+let decode dec x = CConv.decode source dec x
 
-let from_opt sink x =
-  try Some (from sink x)
-  with CConv.ConversionFailure _ -> None
+let decode_exn dec x = CConv.decode_exn source dec x
 
 let to_string src x =
-  bencode_to_string (into src x)
+  bencode_to_string (encode src x)
 
-let of_string sink s =
+let of_string dec s =
   try
-    let sexp = Bencode.decode (`String s) in
-    from_opt sink sexp
-  with Failure _ -> None
+    let x = Bencode.decode (`String s) in
+    decode dec x
+  with Failure _ ->
+    `Error "invalid B-encode string"
+
+let of_string_exn dec s =
+  let x = Bencode.decode (`String s) in
+  decode_exn dec x

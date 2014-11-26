@@ -20,16 +20,20 @@
 
 (** {1 Interface to Yojson} *)
 
+type 'a or_error = [ `Ok of 'a | `Error of string ]
 type t = Yojson.Basic.json
 
-val source : t CConv.UniversalSource.t
-val sink : t CConv.UniversalSink.t
 
-val into : 'a CConv.Source.t -> 'a -> t
-val from : 'a CConv.Sink.t -> t -> 'a
-val from_opt : 'a CConv.Sink.t -> t -> 'a option
+val target : t CConv.Encode.target
+val source : t CConv.Decode.source
 
-val to_string : 'a CConv.Source.t -> 'a -> string
-val of_string : 'a CConv.Sink.t -> string -> 'a option
+val encode : 'src CConv.Encode.encoder -> 'src -> t
+val decode_exn : 'into CConv.Decode.decoder -> t -> 'into
+val decode : 'into CConv.Decode.decoder -> t -> 'into or_error
+
+val to_string : 'a CConv.Encode.encoder -> 'a -> string
+val of_string : 'a CConv.Decode.decoder -> string -> 'a or_error
+val of_string_exn : 'a CConv.Decode.decoder -> string -> 'a
+
 
 val json_to_string : t -> string

@@ -19,39 +19,37 @@
  *)
 
 
-type t = Yojson.Basic.json
+type 'a or_error = [ `Ok of 'a | `Error of string ]
+type t =
+  [ `Assoc of (string * Yojson.Basic.json) list
+  | `Bool of bool
+  | `Float of float
+  | `Int of int
+  | `List of Yojson.Basic.json list
+  | `Null
+  | `String of string ]
 
 let source =
-  let module U = CConv.UniversalSource in
-  let rec visit : type b. b CConv.Sink.t -> t -> b =
-  fun sink x -> match x with
-    | `Int i -> U.int_ sink i
-    | `Float f -> U.float_ sink f
-    | `Bool b -> U.bool_ sink b
-    | `Null -> U.unit_ sink
-    | `String s ->
-        begin match CConv.Sink.expected sink with
-        | CConv.Sink.ExpectSum -> U.sum ~src sink s []
-        | _ -> U.string_ sink s
-        end
-    | `List ((`String name :: l) as l') ->
-        begin match CConv.Sink.expected sink with
-        | CConv.Sink.ExpectSum -> U.sum ~src sink name l
-        | _ -> U.list_ ~src sink l'
-        end
-    | `List l -> U.list_ ~src sink l
-    | `Assoc l -> U.record ~src sink l
-  and src = { U.visit=visit; } in
+  let module D = CConv.Decode in
+  let rec src = {D.emit=fun dec (x:t) -> match x with
+    | `Bool b -> dec.D.accept_bool src b
+    | `Int i -> dec.D.accept_int src i
+    | `Float f -> dec.D.accept_float src f
+    | `String s -> dec.D.accept_string src s
+    | `Null -> dec.D.accept_unit src ()
+    | `List l -> dec.D.accept_list src l
+    | `Assoc l -> dec.D.accept_record src l
+  } in
   src
 
-let sink : t CConv.UniversalSink.t =
-  let open CConv.UniversalSink in
-  { unit_ = `Null;
-    bool_ = (fun b -> `Bool b);
-    float_ = (fun f -> `Float f);
-    int_ = (fun i -> `Int i);
-    string_ = (fun s -> `String s);
-    list_ = (fun l -> `List l);
+let target =
+  let module E = CConv.Encode in
+  { E.unit= `Null;
+    bool = (fun b -> `Bool b);
+    float = (fun f -> `Float f);
+    int = (fun i -> `Int i);
+    string = (fun s -> `String s);
+    list = (fun l -> `List l);
     record = (fun l -> `Assoc l);
     tuple = (fun l -> `List l);
     sum = (fun name l -> match l with
@@ -61,19 +59,23 @@ let sink : t CConv.UniversalSink.t =
 
 let json_to_string s = Yojson.Basic.to_string ~std:true s
 
-let into src x = CConv.into src sink x
+let encode src x = CConv.encode src target x
 
-let from sink x = CConv.from source sink x
+let decode dec x = CConv.decode source dec x
 
-let from_opt sink x =
-  try Some (from sink x)
-  with CConv.ConversionFailure _ -> None
+let decode_exn dec x = CConv.decode_exn source dec x
 
 let to_string src x =
-  json_to_string (into src x)
+  json_to_string (encode src x)
 
-let of_string sink s =
+let of_string dec s =
   try
-    let sexp = Yojson.Basic.from_string s in
-    from_opt sink sexp
-  with Yojson.Json_error _ -> None
+    let x = Yojson.Basic.from_string s in
+    decode dec x
+  with Failure _ ->
+    `Error "invalid JSON string"
+
+let of_string_exn dec s =
+  let x = Yojson.Basic.from_string s in
+  decode_exn dec x
+

@@ -18,35 +18,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *)
 
+type 'a or_error = [ `Ok of 'a | `Error of string ]
+
 type t = Sexplib.Sexp.t =
   | Atom of string
   | List of t list
 
 let source =
-  let module U = CConv.UniversalSource in
-  let rec visit : type b. b CConv.Sink.t -> t -> b =
-  fun sink x -> match x, CConv.Sink.expected sink with
-    | Atom s, CConv.Sink.ExpectSum -> U.sum ~src sink s []
-    | List (Atom name :: l), CConv.Sink.ExpectSum -> U.sum ~src sink name l
-    | List l, CConv.Sink.ExpectRecord ->
-        let l' = List.map (function
-          | List [Atom name; x] -> name, x
-          | _ -> CConv.report_error "get List, but expected Record") l
-        in U.record ~src sink l'
-    | Atom s, _ -> U.string_ sink s
-    | List [], CConv.Sink.ExpectUnit -> U.unit_ sink
-    | List l, _ -> U.list_ ~src sink l
-  and src = { U.visit=visit; } in
+  let module D = CConv.Decode in
+  let rec src = {D.emit=fun dec s -> match s with
+    | Atom s -> dec.D.accept_string src s
+    | List l -> dec.D.accept_list src l
+  } in
   src
 
-let sink =
-  let open CConv.UniversalSink in
-  { unit_ = List [];
-    bool_ = (fun b -> Atom (string_of_bool b));
-    float_ = (fun f -> Atom (string_of_float f));
-    int_ = (fun i -> Atom (string_of_int i));
-    string_ = (fun s -> Atom (String.escaped s));
-    list_ = (fun l -> List l);
+let target =
+  let module E = CConv.Encode in
+  { E.unit = List [];
+    bool = (fun b -> Atom (string_of_bool b));
+    float = (fun f -> Atom (string_of_float f));
+    int = (fun i -> Atom (string_of_int i));
+    string = (fun s -> Atom (String.escaped s));
+    list = (fun l -> List l);
     record = (fun l -> List (List.map (fun (a,b) -> List [Atom a; b]) l));
     tuple = (fun l -> List l);
     sum = (fun name l -> match l with
@@ -56,19 +49,22 @@ let sink =
 
 let sexp_to_string = Sexplib.Sexp.to_string
 
-let into src x = CConv.into src sink x
+let encode src x = CConv.encode src target x
 
-let from sink x = CConv.from source sink x
+let decode dec x = CConv.decode source dec x
 
-let from_opt sink x =
-  try Some (from sink x)
-  with CConv.ConversionFailure _ -> None
+let decode_exn dec x = CConv.decode_exn source dec x
 
 let to_string src x =
-  sexp_to_string (into src x)
+  sexp_to_string (encode src x)
 
-let of_string sink s =
+let of_string dec s =
   try
-    let sexp = Sexplib.Sexp.of_string s in
-    from_opt sink sexp
-  with Failure _ -> None
+    let x = Sexplib.Sexp.of_string s in
+    decode dec x
+  with Failure _ ->
+    `Error "invalid Sexp string"
+
+let of_string_exn dec s =
+  let x = Sexplib.Sexp.of_string s in
+  decode_exn dec x
