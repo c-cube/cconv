@@ -57,6 +57,11 @@ Library "cconv_bencode"
   BuildDepends:     cconv,bencode
   XMETARequires:    cconv,bencode
 
+Executable "example"
+  Path:             example
+  MainIs:           all.ml
+  BuildDepends:     cconv
+
 Document doc
   Title:                Documentation for CConv
   Type:                 ocamlbuild (0.3)
