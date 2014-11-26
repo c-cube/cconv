@@ -133,31 +133,29 @@ A 'a decodee describes a way to traverse a value of some type representing
 a serialization format such as JSON or B-encode *)
 module Decode : sig
   type 'src source = {
-    emit : 'a. 'a decoder -> 'src -> 'a;
+    emit : 'a. ('src,'a) inner_decoder -> 'src -> 'a;
   } (** Decode a value of type 'src *)
 
-  and 'into decoder = private {
-    accept_unit : 'src. 'src source ->  unit -> 'into;
-    accept_bool : 'src. 'src source -> bool -> 'into;
-    accept_float : 'src. 'src source -> float -> 'into;
-    accept_int : 'src. 'src source -> int -> 'into;
-    accept_string : 'src. 'src source -> string -> 'into;
-    accept_list : 'src. 'src source -> 'src list -> 'into;
-    accept_record : 'src. 'src source -> (string * 'src) list -> 'into;
-    accept_tuple : 'src. 'src source -> 'src list -> 'into;
-    accept_sum : 'src. 'src source -> string -> 'src list -> 'into;
-  } (** Decode a value of type 'src into a type 'into.
-        The user must provide all functions but [accept] *)
+  and ('src, 'into) inner_decoder = {
+    accept_unit : 'src source ->  unit -> 'into;
+    accept_bool : 'src source -> bool -> 'into;
+    accept_float : 'src source -> float -> 'into;
+    accept_int : 'src source -> int -> 'into;
+    accept_string : 'src source -> string -> 'into;
+    accept_list : 'src source -> 'src list -> 'into;
+    accept_record : 'src source -> (string * 'src) list -> 'into;
+    accept_tuple : 'src source -> 'src list -> 'into;
+    accept_sum : 'src source -> string -> 'src list -> 'into;
+  } (** Decode a value of type 'src into a type 'into. *)
+
+  type 'into decoder = {
+    dec : 'src. ('src, 'into) inner_decoder;
+  }
 
   val apply : 'src source -> 'into decoder -> 'src -> 'into
   (** Apply a decoder to a source *)
 
   (** {6 Decoder Combinators} *)
-
-  val failing : expected:string -> 'into decoder
-  (** [failing ~expected] is the decoder that fails in any case, raising
-      [ConversionFailure] with a message that specifies that
-      [expected] was expected. *)
 
   val int : int decoder
   val float : float decoder
@@ -214,24 +212,22 @@ module Decode : sig
     record_accept : 'src. 'src source -> (string * 'src) list -> 'into;
   }
 
-  val record : ?expected:string -> 'into record_decoder -> 'into decoder
+  val record : 'into record_decoder -> 'into decoder
   (** Decoder for records. It will adapt itself to association tuples
       and lists. *)
 
-  val record_fix : ?expected:string ->
-                   ('into decoder -> 'into record_decoder) ->
+  val record_fix : ('into decoder -> 'into record_decoder) ->
                    'into decoder
 
   type 'into sum_decoder = {
     sum_accept : 'src. 'src source -> string -> 'src list -> 'into;
   }
 
-  val sum : ?expected:string -> 'into sum_decoder -> 'into decoder
+  val sum : 'into sum_decoder -> 'into decoder
   (** Decoder for sums. It will adapt itself to strings, lists
       and tuples *)
 
-  val sum_fix : ?expected:string ->
-                 ('into decoder -> 'into sum_decoder) ->
+  val sum_fix : ('into decoder -> 'into sum_decoder) ->
                  'into decoder
 
   type 'into tuple_decoder = {

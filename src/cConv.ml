@@ -183,106 +183,110 @@ end
 
 module Decode = struct
   type 'src source = {
-    emit : 'a. 'a decoder -> 'src -> 'a;
+    emit : 'a. ('src,'a) inner_decoder -> 'src -> 'a;
   } (** Decode a value of type 'src *)
 
-  and 'into decoder = {
-    accept_unit : 'src. 'src source ->  unit -> 'into;
-    accept_bool : 'src. 'src source -> bool -> 'into;
-    accept_float : 'src. 'src source -> float -> 'into;
-    accept_int : 'src. 'src source -> int -> 'into;
-    accept_string : 'src. 'src source -> string -> 'into;
-    accept_list : 'src. 'src source -> 'src list -> 'into;
-    accept_record : 'src. 'src source -> (string * 'src) list -> 'into;
-    accept_tuple : 'src. 'src source -> 'src list -> 'into;
-    accept_sum : 'src. 'src source -> string -> 'src list -> 'into;
+  and ('src, 'into) inner_decoder = {
+    accept_unit : 'src source ->  unit -> 'into;
+    accept_bool : 'src source -> bool -> 'into;
+    accept_float : 'src source -> float -> 'into;
+    accept_int : 'src source -> int -> 'into;
+    accept_string : 'src source -> string -> 'into;
+    accept_list : 'src source -> 'src list -> 'into;
+    accept_record : 'src source -> (string * 'src) list -> 'into;
+    accept_tuple : 'src source -> 'src list -> 'into;
+    accept_sum : 'src source -> string -> 'src list -> 'into;
   } (** Decode a value of type 'src into a type 'into.
         The user must provide all functions but [accept] *)
 
-  let apply src dec x = src.emit dec x
+  type 'into decoder = {
+    dec : 'src. ('src, 'into) inner_decoder;
+  }
 
-  let fail_ expected obtained =
-    report_error "expected %s, got %s" expected obtained
+  let apply_inner src dec x = src.emit dec x
+  let apply src dec x = src.emit dec.dec x
 
-  let failing ~expected =
-    { accept_unit=(fun _ _ -> fail_ expected "unit")
-    ; accept_int=(fun _ _ -> fail_ expected "int")
-    ; accept_float=(fun _ _ -> fail_ expected "float")
-    ; accept_bool=(fun _ _ -> fail_ expected "bool")
-    ; accept_string=(fun _ _ -> fail_ expected "string")
-    ; accept_list=(fun _ _ -> fail_ expected "list")
-    ; accept_sum=(fun _ _ _ -> fail_ expected "sum")
-    ; accept_record=(fun _ _ -> fail_ expected "record")
-    ; accept_tuple=(fun _ _ -> fail_ expected "tuple")
-    }
+  let fail_ obtained = report_error "unexpected  %s" obtained
 
-  let int = {
-    (failing ~expected:"int") with
+  let failing =
+    { accept_unit=(fun _ _ -> fail_ "unit")
+    ; accept_int=(fun _ _ -> fail_ "int")
+    ; accept_float=(fun _ _ -> fail_ "float")
+    ; accept_bool=(fun _ _ -> fail_ "bool")
+    ; accept_string=(fun _ _ -> fail_ "string")
+    ; accept_list=(fun _ _ -> fail_ "list")
+    ; accept_sum=(fun _ _ _ -> fail_ "sum")
+    ; accept_record=(fun _ _ -> fail_ "record")
+    ; accept_tuple=(fun _ _ -> fail_ "tuple")
+  }
+
+  let int = {dec={
+    failing with
     accept_int=(fun _ x -> x);
     accept_float=(fun _ x-> int_of_float x);
     accept_string=(fun _ s ->
-      try int_of_string s with Failure _ -> fail_ "int" "string"
+      try int_of_string s with Failure _ -> fail_ "string"
     );
-  }
+  }}
 
-  let bool = {
-    (failing ~expected:"bool") with
+  let bool = {dec={
+    failing with
     accept_bool=(fun _ x ->x);
     accept_int=(fun _ i -> if i=0 then false else true);
     accept_string=(fun _ s -> match s with
       | "true" | "True" -> true
       | "false" | "False" -> false
-      | s -> fail_ "bool" s
+      | s -> fail_ s
     );
-  }
+  }}
 
-  let unit = {
-    (failing ~expected:"unit") with
+  let unit = {dec={
+    failing with
     accept_unit=(fun _ _ ->());
     accept_string=(fun _ s -> match s with
       | "()" -> ()
-      | s -> fail_ "unit" s
+      | s -> fail_ s
     );
-  }
+  }}
 
-  let float = {
-    (failing ~expected:"float") with
+  let float = {dec={
+    failing with
     accept_float=(fun _ x->x);
     accept_int=(fun _ x -> float_of_int x);
     accept_string=(fun _ s ->
-      try float_of_string s with Failure _ -> fail_ "float" s
+      try float_of_string s with Failure _ -> fail_ s
     );
-  }
+  }}
 
-  let string = {
-    (failing ~expected:"string") with
+  let string = {dec={
+    failing with
     accept_float=(fun _ x -> string_of_float x);
     accept_int=(fun _ -> string_of_int);
     accept_unit=(fun _ _ -> "()");
     accept_bool=(fun _ x ->string_of_bool x);
     accept_string=(fun _ x -> x);
     accept_sum=(fun src name args ->
-      if args=[] then name else fail_ "string" "sum"
+      if args=[] then name else fail_ "sum"
     );
-  }
+  }}
 
-  let list dec_x = {
-    (failing ~expected:"list") with
-    accept_list=(fun src l -> List.map (src.emit dec_x) l);
-    accept_tuple=(fun src l -> List.map (src.emit dec_x) l);
-  }
+  let list dec_x = {dec={
+    failing with
+    accept_list=(fun src l -> List.map (src.emit dec_x.dec) l);
+    accept_tuple=(fun src l -> List.map (src.emit dec_x.dec) l);
+  }}
 
-  let map f dec =
-    { accept_unit=(fun src x -> f (dec.accept_unit src x))
-    ; accept_bool=(fun src x -> f (dec.accept_bool src x))
-    ; accept_float=(fun src x -> f (dec.accept_float src x))
-    ; accept_int=(fun src x -> f (dec.accept_int src x))
-    ; accept_string=(fun src x -> f (dec.accept_string src x))
-    ; accept_list=(fun src l -> f (dec.accept_list src l))
-    ; accept_record=(fun src l -> f (dec.accept_record src l))
-    ; accept_tuple=(fun src l -> f (dec.accept_tuple src l))
-    ; accept_sum=(fun src name l -> f (dec.accept_sum src name l))
-    }
+  let map f d = {dec=
+    { accept_unit=(fun src x -> f (d.dec.accept_unit src x))
+    ; accept_bool=(fun src x -> f (d.dec.accept_bool src x))
+    ; accept_float=(fun src x -> f (d.dec.accept_float src x))
+    ; accept_int=(fun src x -> f (d.dec.accept_int src x))
+    ; accept_string=(fun src x -> f (d.dec.accept_string src x))
+    ; accept_list=(fun src l -> f (d.dec.accept_list src l))
+    ; accept_record=(fun src l -> f (d.dec.accept_record src l))
+    ; accept_tuple=(fun src l -> f (d.dec.accept_tuple src l))
+    ; accept_sum=(fun src name l -> f (d.dec.accept_sum src name l))
+  }}
 
   let array dec_x = map Array.of_list (list dec_x)
 
@@ -294,51 +298,80 @@ module Decode = struct
     | _ -> fail_accept_ "empty list"
 
   let arg1 dec src = function
-    | [x] -> src.emit dec x
+    | [x] -> src.emit dec.dec x
     | _ -> fail_accept_ "one-element list"
 
   let arg2 dec_x dec_y src = function
-    | [x;y] -> src.emit dec_x x, src.emit dec_y y
+    | [x;y] -> src.emit dec_x.dec x, src.emit dec_y.dec y
     | _ -> fail_accept_ "2 elements"
 
   let arg3 dec_x dec_y dec_z src = function
-    | [x;y;z] -> src.emit dec_x x, src.emit dec_y y, src.emit dec_z z
+    | [x;y;z] -> src.emit dec_x.dec x, src.emit dec_y.dec y, src.emit dec_z.dec z
     | _ -> fail_accept_ "3 elements"
 
-  let pair dec_x dec_y = {
-    (failing ~expected:"pair") with
+  let pair dec_x dec_y = {dec={
+    failing with
     accept_list=(fun src l -> arg2 dec_x dec_y src l);
     accept_tuple=(fun src l -> arg2 dec_x dec_y src l);
-  }
+  }}
 
-  let triple dec_x dec_y dec_z = {
-    (failing ~expected:"triple") with
+  let triple dec_x dec_y dec_z = {dec={
+    failing with
     accept_list=(fun src l -> arg3 dec_x dec_y dec_z src l);
     accept_tuple=(fun src l -> arg3 dec_x dec_y dec_z src l);
-  }
+  }}
 
   let rec record_get name dec src l = match l with
     | [] -> report_error "could not find record field %s" name
-    | (name', x) :: _ when name=name' -> src.emit dec x
+    | (name', x) :: _ when name=name' -> src.emit dec.dec x
     | _ :: tail -> record_get name dec src tail
 
   let rec record_get_opt name dec src l = match l with
     | [] -> None
-    | (name', x) :: _ when name=name' -> Some (src.emit dec x)
+    | (name', x) :: _ when name=name' -> Some (src.emit dec.dec x)
     | _ :: tail -> record_get_opt name dec src tail
 
   type 'into record_decoder = {
     record_accept : 'src. 'src source -> (string * 'src) list -> 'into;
   }
 
-  let record ?(expected="record") f = {
-    (failing ~expected) with
-    accept_record=(fun src l -> f.record_accept src l);
+  type assoc_pair =
+    | AssocPair : 'src source * string * 'src -> assoc_pair
+
+  (* put an item of an association list into [r] *)
+  let get_pair_magic r = {
+    failing with
+    accept_list=(fun src' l -> match l with
+      | [s; x] -> r := (src'.emit string.dec s, x) :: !r; raise Exit
+      | _ -> fail_accept_ "expected pair string/value"
+    );
   }
 
-  let record_fix ?expected make_f =
-    let rec self = lazy (record ?expected {
-        record_accept=fun src l -> (Lazy.force f).record_accept src l
+  let get_pairs src l =
+    let res = ref [] in
+    List.iter
+      (fun p ->
+        try src.emit (get_pair_magic res) p
+        with Exit -> ()
+      ) l;
+    List.rev !res
+
+  let record f = {dec={
+    failing with
+    accept_record=(fun src l -> f.record_accept src l);
+    accept_list=(fun src l ->
+      let assoc = get_pairs src l in
+      f.record_accept src assoc
+    );
+    accept_tuple=(fun src l ->
+      let assoc = get_pairs src l in
+      f.record_accept src assoc
+    );
+  }}
+
+  let record_fix make_f =
+    let rec self = lazy (record {
+      record_accept=fun src l -> (Lazy.force f).record_accept src l
     })
     and f = lazy (make_f (Lazy.force self)) in
     Lazy.force self
@@ -347,26 +380,26 @@ module Decode = struct
     sum_accept : 'src. 'src source -> string -> 'src list -> 'into;
   }
 
-  let sum ?(expected="sum") f = {
-    (failing ~expected) with
+  let sum f = {dec={
+    failing with
     accept_sum=(fun src name args -> f.sum_accept src name args);
     accept_string=(fun src s -> f.sum_accept src s []);
     accept_list=(fun src l -> match l with
       | name::args ->
-          let name = apply src string name in
+          let name = apply_inner src string.dec name in
           f.sum_accept src name args
-      | [] -> fail_ "sum" "empty list"
+      | [] -> fail_ "empty list when expecting sum"
     );
     accept_tuple=(fun src l -> match l with
       | name::args ->
-          let name = apply src string name in
+          let name = apply_inner src string.dec name in
           f.sum_accept src name args
-      | [] -> fail_ "sum" "empty tuple"
+      | [] -> fail_ "empty tuple when expecting sum"
     );
-  }
+  }}
 
-  let sum_fix ?expected make_f =
-    let rec self = lazy (sum ?expected {
+  let sum_fix make_f =
+    let rec self = lazy (sum {
       sum_accept=fun src name args -> (Lazy.force f).sum_accept src name args
     })
     and f = lazy (make_f (Lazy.force self)) in
@@ -375,7 +408,7 @@ module Decode = struct
   let option dec = sum {
     sum_accept=(fun src name args -> match name, args with
       | ("none" | "None"), [] -> None
-      | ("some" | "Some"), [x] -> Some (src.emit dec x)
+      | ("some" | "Some"), [x] -> Some (src.emit dec.dec x)
       | _ -> fail_accept_ "option"
     )
   }
@@ -384,21 +417,21 @@ module Decode = struct
     tuple_accept : 'src. 'src source -> 'src list -> 'into;
   }
 
-  let tuple f = {
-    (failing ~expected:"tuple") with
+  let tuple f = {dec={
+    failing with
     accept_tuple=(fun src l -> f.tuple_accept src l);
     accept_list=(fun src l -> f.tuple_accept src l);
-  }
+  }}
 end
 
 let encode enc target x = enc.Encode.emit target x
 
 let to_string enc x = enc.Encode.emit Encode.string_target x
 
-let decode_exn src dec x = src.Decode.emit dec x
+let decode_exn src dec x = src.Decode.emit dec.Decode.dec x
 
 type 'a or_error = [ `Ok of 'a | `Error of string ]
 
 let decode src dec x =
-  try `Ok (src.Decode.emit dec x)
+  try `Ok (src.Decode.emit dec.Decode.dec x)
   with ConversionFailure msg -> `Error msg

@@ -20,7 +20,7 @@ module Point = struct
     record_end)
   ) ;;
 
-  let decode = CConv.Decode.(record_fix ~expected:"point"
+  let decode = CConv.Decode.(record_fix
     (fun self -> { record_accept=fun src l ->
       let x = record_get "x" int src l in
       let y = record_get "y" int src l in
@@ -48,7 +48,7 @@ module Lambda = struct
     )
   )
 
-  let decode = CConv.Decode.(sum_fix ~expected:"lambda"
+  let decode = CConv.Decode.(sum_fix
     (fun self -> {
       sum_accept=fun src name args -> match name, args with
         | "var", [x] ->
