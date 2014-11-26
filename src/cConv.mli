@@ -32,159 +32,250 @@ val report_error : ('a, Buffer.t, unit, 'b) format4 -> 'a
 (** Helper to report conversion errors.
     @raise ConversionFailure if the conversion failed (!) *)
 
-(** {6 Universal sink}
+(** {2 Encode}
 
-Some type any valye can be traducted into, such as a serialization format
-like JSON or B-encode. *)
-module UniversalSink : sig
-  type 'a t = {
-    unit_ : 'a;
-    bool_ : bool -> 'a;
-    float_ : float -> 'a;
-    int_ : int -> 'a;
-    string_ : string -> 'a;
-    list_ : 'a list -> 'a;
-    record : (string*'a) list -> 'a;
+Helps encoding values into a serialization format (building
+values of some type 'a, such as a JSON tree) *)
+
+module Encode : sig
+  type 'a target = {
+    unit : 'a;
+    bool : bool -> 'a;
+    float : float -> 'a;
+    int : int -> 'a;
+    string : string -> 'a;
+    list : 'a list -> 'a;
+    record : (string * 'a) list -> 'a;
     tuple : 'a list -> 'a;
     sum : string -> 'a list -> 'a;
   }
-end
 
-(** {6 Sources}
-A 'a source is used to build values of some type 'b, given a 'b sink
-description of how to build values of type 'b. *)
-module Source : sig
-  type 'a t = {
-    convert : 'b. 'b UniversalSink.t -> 'a -> 'b;
-  }
+  val string_target : string target
+  (** Print values. Caution, inefficient! Should be used for debugging only *)
 
-  type 'r record_src
+  type -'src encoder = {
+    emit : 'into. 'into target -> 'src -> 'into
+  } (** A way to encode values of type ['src] into any serialization format *)
 
+  val unit : unit encoder
+  val bool : bool encoder
+  val float : float encoder
+  val int : int encoder
+  val string : string encoder
+  val list : 'a encoder -> 'a list encoder
+
+  val map : ('a -> 'b) -> 'b encoder -> 'a encoder
+  val array : 'a encoder -> 'a array encoder
+
+  (** {6 Heterogeneous List} *)
   type hlist =
     | HNil : hlist
-    | HCons : 'a t * 'a * hlist -> hlist
+    | HCons : 'a encoder * 'a * hlist -> hlist
 
   val hnil : hlist
-  val hcons : 'a t -> 'a -> hlist -> hlist
+  val hcons : 'a encoder -> 'a -> hlist -> hlist
+  val (@::) : ('a encoder * 'a) -> hlist -> hlist
 
-  val unit_ : unit t
-  val bool_ : bool t
-  val float_ : float t
-  val int_ : int t
-  val string_ : string t
-  val list_ : 'a t -> 'a list t
+  (** {6 Composite Types} *)
 
-  val map : ('a -> 'b) -> 'b t -> 'a t
-  val array_ : 'a t -> 'a array t
+  type record_fields =
+    | RecordEnd : record_fields (** Empty record *)
+    | RecordField :
+      string (** name *)
+      * 'a encoder  (** how to encode value *)
+      * 'a  (** value *)
+      * record_fields  (** Rest *)
+      -> record_fields
 
-  val field : string -> ('r -> 'a) -> 'a t -> 'r record_src -> 'r record_src
-  val record_stop : 'r record_src
-  val record : 'r record_src -> 'r t
-  val record_fix : ('r t -> 'r record_src) -> 'r t
+  val record_end : record_fields
+  val field : string -> 'a encoder -> 'a ->
+              record_fields -> record_fields
 
-  val tuple : ('a -> hlist) -> 'a t
+  val (@->) : (string * 'a encoder * 'a) ->
+              record_fields -> record_fields
+  (** Infix constructor for record fields. Example:
+  {[ type point = {x:int; y:int; c:string};;
+   let enc_point = record
+     (fun {x;y;c} -> ("x", int, x) @-> ("y", int, y) @-> ("c", string, c) @-> record_end)
+    ;;
+  ]} *)
 
-  val pair : 'a t -> 'b t -> ('a * 'b) t
-  val triple : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
-  val quad : 'a t -> 'b t -> 'c t -> 'd t -> ('a * 'b * 'c * 'd) t
+  val record : ('r -> record_fields) -> 'r encoder
+  val record_fix : ('r encoder -> 'r -> record_fields) -> 'r encoder
 
-  val sum : ('a -> string * hlist) -> 'a t
-  val sum0 : ('a -> string) -> 'a t
-  val sum_fix : ('a t -> 'a -> string * hlist) -> 'a t
+  val tuple : ('a ->  hlist) -> 'a encoder
+  (** General encoding of tuples *)
 
-  val opt : 'a t -> 'a option t
+  val pair : 'a encoder ->
+             'b encoder ->
+             ('a * 'b) encoder
+  val triple : 'a encoder ->
+               'b encoder ->
+               'c encoder ->
+               ('a * 'b * 'c) encoder
+  val quad : 'a encoder ->
+             'b encoder ->
+             'c encoder ->
+             'd encoder ->
+             ('a * 'b * 'c * 'd) encoder
+
+  val sum : ('a -> string *  hlist) -> 'a encoder
+  val sum0 : ('a -> string) -> 'a encoder (** Constant sums *)
+
+  val sum_fix : ('a encoder -> 'a -> string * hlist) -> 'a encoder
+
+  val option : 'a encoder -> 'a option encoder
 end
 
-(** {6 Sinks}
-A sink is used to produce values of type 'a from a universal source. *)
-module Sink : sig
-  type 'a t  (** How to produce values of type 'a *)
+(** {2 Decode}
 
-  and 'r record_sink =
-    | RecordField : string * 'a t * ('a -> 'r record_sink) -> 'r record_sink
-    | RecordStop : 'r -> 'r record_sink
+A 'a decodee describes a way to traverse a value of some type representing
+a serialization format such as JSON or B-encode *)
+module Decode : sig
+  type 'src source = {
+    emit : 'a. 'a decoder -> 'src -> 'a;
+  } (** Decode a value of type 'src *)
 
-  and 't hlist =
-    | HCons : 'a t * ('a -> 't hlist) -> 't hlist
-    | HNil : 't -> 't hlist
+  and 'into decoder = private {
+    accept_unit : 'src. 'src source ->  unit -> 'into;
+    accept_bool : 'src. 'src source -> bool -> 'into;
+    accept_float : 'src. 'src source -> float -> 'into;
+    accept_int : 'src. 'src source -> int -> 'into;
+    accept_string : 'src. 'src source -> string -> 'into;
+    accept_list : 'src. 'src source -> 'src list -> 'into;
+    accept_record : 'src. 'src source -> (string * 'src) list -> 'into;
+    accept_tuple : 'src. 'src source -> 'src list -> 'into;
+    accept_sum : 'src. 'src source -> string -> 'src list -> 'into;
+  } (** Decode a value of type 'src into a type 'into.
+        The user must provide all functions but [accept] *)
 
-  val unit_ : unit t
-  val bool_ : bool t
-  val float_ : float t
-  val int_ : int t
-  val string_ : string t
-  val list_ : 'a t -> 'a list t
+  val apply : 'src source -> 'into decoder -> 'src -> 'into
+  (** Apply a decoder to a source *)
 
-  val map : ('a -> 'b) -> 'a t -> 'b t
-  val array_ : 'a t -> 'a array t
+  (** {6 Decoder Combinators} *)
 
-  val field : string -> 'a t -> ('a -> 'r record_sink) -> 'r record_sink
-  val yield_record : 'r -> 'r record_sink
-  val record : 'r record_sink -> 'r t
-  val record_fix : ('r t -> 'r record_sink) -> 'r t
+  val failing : expected:string -> 'into decoder
+  (** [failing ~expected] is the decoder that fails in any case, raising
+      [ConversionFailure] with a message that specifies that
+      [expected] was expected. *)
 
-  val (|+|) : 'a t -> ('a -> 't hlist) -> 't hlist
-  val yield : 'a -> 'a hlist
+  val int : int decoder
+  val float : float decoder
+  val bool : bool decoder
+  val unit : unit decoder
+  val string : string decoder
 
-  val tuple : 't hlist -> 't t
+  val list : 'a decoder -> 'a list decoder
+  val array : 'a decoder -> 'a array decoder
 
-  val pair : 'a t -> 'b t -> ('a * 'b) t
-  val triple : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
-  val quad : 'a t -> 'b t -> 'c t -> 'd t -> ('a * 'b * 'c * 'd) t
+  val map : ('a -> 'b) -> 'a decoder -> 'b decoder
+  (** Map the decoded value *)
 
-  val sum : (string -> 'a hlist) -> 'a t
-  val sum_fix : ('a t -> string -> 'a hlist) -> 'a t
+  val arg0 : 'src list -> unit
+  (** Only accepts an empty list/tuple *)
 
-  val opt : 'a t -> 'a option t
+  val arg1 : 'a decoder -> 'src source -> 'src list -> 'a
+  (** Only accepts a 1-element list/tuple *)
 
-  (** What is expected by the sink? *)
-  type expected =
-    | ExpectInt
-    | ExpectBool
-    | ExpectUnit
-    | ExpectFloat
-    | ExpectString
-    | ExpectRecord
-    | ExpectTuple
-    | ExpectList
-    | ExpectSum
+  val arg2 : 'a decoder -> 'b decoder ->
+             'src source -> 'src list -> 'a * 'b
+  (** Only accepts a 2-elements list/tuple *)
 
-  val expected : _ t -> expected
-    (** To be used by sources that have ambiguities to know what is expected.
-        maps and fixpoints are unrolled. *)
-end
+  val arg3 : 'a decoder ->
+             'b decoder ->
+             'c decoder ->
+             'src source ->
+             'src list -> 'a * 'b * 'c
+  (** Only accepts a 3-elements list/tuple *)
 
-(** {6 Universal source}
+  val option : 'a decoder -> 'a option decoder
+  (** Helper for options *)
 
-source from type 'a, where 'a is typically a serialization
-format. This is used to translate from 'a to some other type.
-A universal format should use the provided combinators to
-interface with {!Sink.t} values *)
-module UniversalSource : sig
-  type 'a t = {
-    visit : 'b. 'b Sink.t -> 'a -> 'b;
+  val pair : 'a decoder -> 'b decoder -> ('a * 'b) decoder
+
+  val triple : 'a decoder ->
+               'b decoder ->
+               'c decoder ->
+               ('a * 'b * 'c) decoder
+
+  val record_get : string -> 'into decoder ->
+                  'src source -> (string * 'src) list ->
+                  'into
+  (** [record_get name dec l] is a helper for decoding records. It is
+      given a list of fields [l], and searches [name] through it.
+      If [name] is found with a value [v], [dec.accept v] is called.
+      Otherwise an error is raised *)
+
+  val record_get_opt : string -> 'into decoder ->
+                      'src source -> (string * 'src) list ->
+                      'into option
+
+  type 'into record_decoder = {
+    record_accept : 'src. 'src source -> (string * 'src) list -> 'into;
   }
 
-  val unit_ : 'b Sink.t -> 'b
-  val bool_ : 'b Sink.t -> bool -> 'b
-  val float_ : 'b Sink.t -> float -> 'b
-  val int_ : 'b Sink.t -> int -> 'b
-  val string_ : 'b Sink.t -> string -> 'b
-  val list_ : src:'a t -> 'b Sink.t -> 'a list -> 'b
-  val record : src:'a t -> 'b Sink.t -> (string*'a) list -> 'b
-  val tuple : src:'a t -> 'b Sink.t -> 'a list -> 'b
-  val sum : src:'a t -> 'b Sink.t -> string -> 'a list -> 'b
+  val record : ?expected:string -> 'into record_decoder -> 'into decoder
+  (** Decoder for records. It will adapt itself to association tuples
+      and lists. *)
+
+  val record_fix : ?expected:string ->
+                   ('into decoder -> 'into record_decoder) ->
+                   'into decoder
+
+  type 'into sum_decoder = {
+    sum_accept : 'src. 'src source -> string -> 'src list -> 'into;
+  }
+
+  val sum : ?expected:string -> 'into sum_decoder -> 'into decoder
+  (** Decoder for sums. It will adapt itself to strings, lists
+      and tuples *)
+
+  val sum_fix : ?expected:string ->
+                 ('into decoder -> 'into sum_decoder) ->
+                 'into decoder
+
+  type 'into tuple_decoder = {
+    tuple_accept : 'src. 'src source -> 'src list -> 'into;
+  }
+
+  val tuple : 'into tuple_decoder -> 'into decoder
+  (** Tuple decoder *)
+
+  (** Examples:
+  {[
+  type mytuple = int * string * float list ;;
+
+  let decode_mytuple = tuple {
+    tuple_accept=fun src l -> arg3 int int (list string) src l);
+  };;
+
+  (* OR, because triples are really easy: *)
+  let decode_mytuple = triple int int (list string);;
+
+  type point = { x:int;  y:int; color:string };;
+
+  let decode_point = record ~expected:"point" {
+    record_accept=(fun src l ->
+      let x = record_get "x" int src l in
+      let y = record_get "y" int src l in
+      let color = record_get "color" string src l in
+      {x;y;color}
+    );
+  };;
+  ]}
+  *)
 end
 
-(** {6 Conversion Functions} *)
+type 'a or_error = [ `Ok of 'a | `Error of string ]
 
-val into : 'a Source.t -> 'b UniversalSink.t -> 'a -> 'b
-  (** Conversion to universal sink *)
+val encode : 'src Encode.encoder -> 'into Encode.target -> 'src -> 'into
+(** Encode a value into the serialization format ['into] *)
 
-val from : 'a UniversalSource.t -> 'b Sink.t -> 'a -> 'b
-  (** Conversion from universal source *)
+val to_string : 'src Encode.encoder -> 'src -> string
+(** Use {!Encode.string_target} to print the value *)
 
-(* TODO for format conversion
-val between : 'a Source.universal -> 'b Sink.universal -> 'a -> 'b
-*)
+val decode_exn : 'src Decode.source -> 'into Decode.decoder -> 'src -> 'into
+(** Decode a serialized value *)
+
+val decode : 'src Decode.source -> 'into Decode.decoder -> 'src -> 'into or_error
 
