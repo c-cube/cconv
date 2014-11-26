@@ -61,6 +61,7 @@ Executable "example"
   Path:             example
   MainIs:           all.ml
   BuildDepends:     cconv
+  Install:          false
 
 Document doc
   Title:                Documentation for CConv
