@@ -17,7 +17,8 @@ module Point = struct
       ("y", int, y) @->
       ("color", string, color) @->
       ("prev", option self, prev) @->
-    record_end)
+      record_end
+    )
   ) ;;
 
   let decode = CConv.Decode.(record_fix
