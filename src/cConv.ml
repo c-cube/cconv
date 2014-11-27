@@ -339,32 +339,27 @@ module Decode = struct
     | AssocPair : 'src source * string * 'src -> assoc_pair
 
   (* put an item of an association list into [r] *)
-  let get_pair_magic r = {
+  let get_assoc_pair () = {
     failing with
-    accept_list=(fun src' l -> match l with
-      | [s; x] -> r := (src'.emit string.dec s, x) :: !r; raise Exit
+    accept_list=(fun src l -> match l with
+      | [s; x] -> src.emit string.dec s, x
       | _ -> fail_accept_ "expected pair string/value"
     );
   }
 
-  let get_pairs src l =
-    let res = ref [] in
-    List.iter
-      (fun p ->
-        try src.emit (get_pair_magic res) p
-        with Exit -> ()
-      ) l;
-    List.rev !res
+  let get_assoc_list src l =
+    let getter = get_assoc_pair () in
+    List.map (fun p -> src.emit getter p) l
 
   let record f = {dec={
     failing with
     accept_record=(fun src l -> f.record_accept src l);
     accept_list=(fun src l ->
-      let assoc = get_pairs src l in
+      let assoc = get_assoc_list src l in
       f.record_accept src assoc
     );
     accept_tuple=(fun src l ->
-      let assoc = get_pairs src l in
+      let assoc = get_assoc_list src l in
       f.record_accept src assoc
     );
   }}
