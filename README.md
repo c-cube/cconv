@@ -18,7 +18,9 @@ Alternatively:
         https://github.com/c-cube/cconv.git
 
 Optional bindings to serialization libraries are available for `sexplib`,
-`yojson` and `bencode`. They can be installed via opam.
+`yojson` and `bencode`. They will be installed via opam if the corresponding
+library is present. See [this section](#backends) to learn how to write
+your own serialization backends.
 
 ## License
 
@@ -133,5 +135,42 @@ val t2 : Lambda.t CConvBencode.or_error =
     `Ok (Lambda.Lambda ("x", Lambda.App
         (Lambda.Lambda ("y", Lambda.App (Lambda.Var "y",
         Lambda.Var "x")), Lambda.Var "x")))
+
+```
+
+## Backends
+
+It is quite easy to write a backend for your favorite format, assuming it
+can somehow represent atoms (strings, integers...), lists, records, sums, and is
+recursive. The simplest example is `sexplib` (as found in `sexp/cConvSexp.ml`):
+
+
+```ocaml
+type t = Sexplib.Sexp.t
+
+(* how to decode from Sexp *)
+let source =
+  let module D = CConv.Decode in
+  let rec src = {D.emit=fun dec s -> match s with
+    | Atom s -> dec.D.accept_string src s
+    | List l -> dec.D.accept_list src l
+  } in
+  src
+
+(* how to encode into Sexp *)
+let target =
+  let module E = CConv.Encode in
+  { E.unit = List [];
+    bool = (fun b -> Atom (string_of_bool b));
+    float = (fun f -> Atom (string_of_float f));
+    int = (fun i -> Atom (string_of_int i));
+    string = (fun s -> Atom (String.escaped s));
+    list = (fun l -> List l);
+    record = (fun l -> List (List.map (fun (a,b) -> List [Atom a; b]) l));
+    tuple = (fun l -> List l);
+    sum = (fun name l -> match l with
+      | [] -> Atom name
+      | _::_ -> List (Atom name :: l));
+  }
 
 ```
