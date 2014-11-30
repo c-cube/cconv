@@ -6,6 +6,24 @@ Combinators for Type Conversion in OCaml.
 Documentation can be found [here](http://cedeela.fr/~simon/software/cconv/CConv.html),
 and some toy examples in the `example` directory.
 
+## Build and Install
+
+There are no dependencies. This should work with OCaml>=4.00.1.
+
+    $ make
+
+Alternatively:
+
+    $ opam pin add cconv -k git \
+        https://github.com/c-cube/cconv.git
+
+Optional bindings to serialization libraries are available for `sexplib`,
+`yojson` and `bencode`. They can be installed via opam.
+
+## License
+
+This code is free, under the BSD license. See the `LICENSE` file.
+
 ## Usage
 
 From `example/all.ml`:
@@ -56,7 +74,7 @@ CConvYojson.encode Point.encode Point.p;;
     ("prev", `String "none")]
 
 let json = CConvYojson.encode Point.encode Point.p2;;
-val json : CConvYojson.t =                                                                                                                                                         `Assoc                                                                                                                                                                             [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");                                                                                                                  
+val json : CConvYojson.t =                                                                                                                                                         `Assoc                                                                                                                                                                             [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");
      ("prev", `List [`String "some"; `Assoc [("x", `Int 1);
      ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])]
 
@@ -117,22 +135,3 @@ val t2 : Lambda.t CConvBencode.or_error =
         Lambda.Var "x")), Lambda.Var "x")))
 
 ```
-
-
-## Build and Install
-
-There are no dependencies. This should work with OCaml>=4.00.1.
-
-    $ make
-
-Alternatively:
-
-    $ opam pin add cconv -k git \
-        https://github.com/c-cube/cconv.git
-
-Optional bindings to serialization libraries are available for `sexplib`,
-`yojson` and `bencode`. They can be installed via opam.
-
-## License
-
-This code is free, under the BSD license. See the `LICENSE` file.
