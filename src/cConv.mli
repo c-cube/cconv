@@ -96,8 +96,12 @@ module Encode : sig
   (** Infix constructor for record fields. Example:
   {[ type point = {x:int; y:int; c:string};;
    let enc_point = record
-     (fun {x;y;c} -> ("x", int, x) @-> ("y", int, y) @-> ("c", string, c) @-> record_end)
-    ;;
+     (fun {x;y;c} ->
+        ("x", int, x) @->
+        ("y", int, y) @->
+        ("c", string, c) @->
+        record_end
+     ) ;;
   ]} *)
 
   val record : ('r -> record_fields) -> 'r encoder
