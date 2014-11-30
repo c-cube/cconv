@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: be72b934a8d35eab43e24788222e206f)
+# DO NOT EDIT (digest: b7f3379815ce767db529318f9a5eb94e)
 version = "0.1"
 description = "Combinators for Conversion"
 archive(byte) = "cconv.cma"
@@ -27,6 +27,17 @@ package "sexp" (
  archive(native) = "cconv_sexp.cmxa"
  archive(native, plugin) = "cconv_sexp.cmxs"
  exists_if = "cconv_sexp.cma"
+)
+
+package "psexp" (
+ version = "0.1"
+ description = "Combinators for Conversion"
+ requires = "cconv"
+ archive(byte) = "cconv_psexp.cma"
+ archive(byte, plugin) = "cconv_psexp.cma"
+ archive(native) = "cconv_psexp.cmxa"
+ archive(native, plugin) = "cconv_psexp.cmxs"
+ exists_if = "cconv_psexp.cma"
 )
 
 package "bencode" (

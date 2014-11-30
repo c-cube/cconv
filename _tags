@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: eabd28809869de1ad0e3143ec8e055cf)
+# DO NOT EDIT (digest: ae00dda3b98c515f41868f5e62050d2d)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -28,6 +28,9 @@ true: annot, bin_annot
 "bencode/cconv_bencode.cmxs": use_cconv_bencode
 <bencode/*.ml{,i,y}>: pkg_bencode
 <bencode/*.ml{,i,y}>: use_cconv
+# Library cconv_psexp
+"psexp/cconv_psexp.cmxs": use_cconv_psexp
+<psexp/*.ml{,i,y}>: use_cconv
 # Executable example
 "example/all.byte": use_cconv
 <example/*.ml{,i,y}>: use_cconv

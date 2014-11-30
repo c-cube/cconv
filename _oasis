@@ -57,6 +57,13 @@ Library "cconv_bencode"
   BuildDepends:     cconv,bencode
   XMETARequires:    cconv,bencode
 
+Library "cconv_psexp"
+  Path:             psexp
+  Modules:          CConvPSexp
+  FindlibName:      psexp
+  FindlibParent:    cconv
+  BuildDepends:     cconv
+
 Executable "example"
   Path:             example
   MainIs:           all.ml
