@@ -1,6 +1,6 @@
 OASISFormat: 0.3
 Name:        cconv
-Version:     0.1
+Version:     0.2
 Homepage:    https://github.com/c-cube/cconv
 Authors:     Simon Cruanes
 License:     BSD3
@@ -20,6 +20,10 @@ Flag "yojson"
 
 Flag "bencode"
   Description:  Build and install the interface to Bencode (requires Bencode)
+  Default:      false
+
+Flag "example"
+  Description:  Build examples
   Default:      false
 
 Library "cconv"
@@ -68,6 +72,7 @@ Executable "example"
   Path:             example
   MainIs:           all.ml
   BuildDepends:     cconv
+  Build$:           flag(example)
   Install:          false
 
 Document doc
