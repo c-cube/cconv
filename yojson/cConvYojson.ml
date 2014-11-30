@@ -50,6 +50,7 @@ let target =
     int = (fun i -> `Int i);
     string = (fun s -> `String s);
     list = (fun l -> `List l);
+    option = (function None -> `List [] | Some x -> `List [x]);
     record = (fun l -> `Assoc l);
     tuple = (fun l -> `List l);
     sum = (fun name l -> match l with

@@ -28,6 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 exception ConversionFailure of string
 
+type 'a sequence = ('a -> unit) -> unit
+
 (* error-raising function *)
 let report_error msg =
   let b = Buffer.create 15 in
@@ -50,6 +52,7 @@ module Encode = struct
     int : int -> 'a;
     string : string -> 'a;
     list : 'a list -> 'a;
+    option : 'a option -> 'a;
     record : (string * 'a) list -> 'a;
     tuple : 'a list -> 'a;
     sum : string -> 'a list -> 'a;
@@ -66,6 +69,7 @@ module Encode = struct
       let l = List.map (fun (name,s) -> name ^ "=" ^ s) l in
       Printf.sprintf "{%s}" (String.concat "; " l)
     );
+    option=(function None -> "None"  | Some x -> "some " ^ x);
     sum=(fun name l -> match l with
       | [] -> name
       | [x] -> Printf.sprintf "%s (%s)" name x
@@ -86,11 +90,25 @@ module Encode = struct
   let list encode_x =
     {emit=fun into l -> into.list (List.map (encode_x.emit into) l)}
 
+  let option encode_x =
+    {emit=fun into x -> match x with
+      | None -> into.option None
+      | Some x -> into.option (Some (encode_x.emit into x))
+    }
+
   let map f encode_fx = {emit=fun into x -> encode_fx.emit into (f x)}
 
   let array encode_x = {emit=fun into a ->
     into.list (Array.to_list (Array.map (encode_x.emit into) a))
   }
+
+  let seq_to_list seq =
+    let r = ref [] in
+    seq (fun x -> r := x :: !r);
+    List.rev !r
+
+  let sequence encode_x =
+    map seq_to_list (list encode_x)
 
   (** {6 Heterogeneous List} *)
   type hlist =
@@ -174,11 +192,6 @@ module Encode = struct
       into.sum name (apply_hlist into args)
     } in
     f'
-
-  let option enc_x = {emit=fun into o -> match o with
-    | None -> into.sum "none" []
-    | Some x -> into.sum "some" [enc_x.emit into x]
-  }
 end
 
 module Decode = struct
@@ -193,6 +206,7 @@ module Decode = struct
     accept_int : 'src source -> int -> 'into;
     accept_string : 'src source -> string -> 'into;
     accept_list : 'src source -> 'src list -> 'into;
+    accept_option : 'src source -> 'src option -> 'into;
     accept_record : 'src source -> (string * 'src) list -> 'into;
     accept_tuple : 'src source -> 'src list -> 'into;
     accept_sum : 'src source -> string -> 'src list -> 'into;
@@ -215,6 +229,7 @@ module Decode = struct
     ; accept_bool=(fun _ _ -> fail_ "bool")
     ; accept_string=(fun _ _ -> fail_ "string")
     ; accept_list=(fun _ _ -> fail_ "list")
+    ; accept_option=(fun _ _ -> fail_ "option")
     ; accept_sum=(fun _ _ _ -> fail_ "sum")
     ; accept_record=(fun _ _ -> fail_ "record")
     ; accept_tuple=(fun _ _ -> fail_ "tuple")
@@ -274,6 +289,24 @@ module Decode = struct
     failing with
     accept_list=(fun src l -> List.map (src.emit dec_x.dec) l);
     accept_tuple=(fun src l -> List.map (src.emit dec_x.dec) l);
+    accept_option=(fun src o -> match o with
+      | None -> []
+      | Some x -> [src.emit dec_x.dec x]
+    );
+  }}
+
+  let option dec_x = {dec={
+    failing with
+    accept_option=(fun src o -> match o with
+      | None -> None
+      | Some x -> Some (src.emit dec_x.dec x)
+    );
+    accept_list=(fun src l -> match l with
+      | [] -> None
+      | [x] -> Some (src.emit dec_x.dec x)
+      | _ -> report_error "expected option, got list"
+    );
+    accept_unit=(fun src () -> None);
   }}
 
   let map f d = {dec=
@@ -283,12 +316,17 @@ module Decode = struct
     ; accept_int=(fun src x -> f (d.dec.accept_int src x))
     ; accept_string=(fun src x -> f (d.dec.accept_string src x))
     ; accept_list=(fun src l -> f (d.dec.accept_list src l))
+    ; accept_option=(fun src x -> f (d.dec.accept_option src x))
     ; accept_record=(fun src l -> f (d.dec.accept_record src l))
     ; accept_tuple=(fun src l -> f (d.dec.accept_tuple src l))
     ; accept_sum=(fun src name l -> f (d.dec.accept_sum src name l))
   }}
 
   let array dec_x = map Array.of_list (list dec_x)
+
+  let seq_of_list l yield = List.iter yield l
+
+  let sequence dec_x = map seq_of_list (list dec_x)
 
   let fail_accept_ expected =
     report_error "expected %s" expected
@@ -399,14 +437,6 @@ module Decode = struct
     })
     and f = lazy (make_f (Lazy.force self)) in
     Lazy.force self
-
-  let option dec = sum {
-    sum_accept=(fun src name args -> match name, args with
-      | ("none" | "None"), [] -> None
-      | ("some" | "Some"), [x] -> Some (src.emit dec.dec x)
-      | _ -> fail_accept_ "option"
-    )
-  }
 
   type 'into tuple_decoder = {
     tuple_accept : 'src. 'src source -> 'src list -> 'into;

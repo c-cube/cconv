@@ -38,6 +38,7 @@ let target =
     float = (fun f -> Bencode.String (string_of_float f));
     int = (fun i -> Bencode.Integer i);
     string = (fun s -> Bencode.String s);
+    option = (function None -> Bencode.List[] | Some x -> Bencode.List [x]);
     list = (fun l -> Bencode.List l);
     record = (fun l -> Bencode.Dict l);
     tuple = (fun l -> Bencode.List l);

@@ -28,6 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 exception ConversionFailure of string
 
+type 'a sequence = ('a -> unit) -> unit
+
 val report_error : ('a, Buffer.t, unit, 'b) format4 -> 'a
 (** Helper to report conversion errors.
     @raise ConversionFailure if the conversion failed (!) *)
@@ -45,6 +47,7 @@ module Encode : sig
     int : int -> 'a;
     string : string -> 'a;
     list : 'a list -> 'a;
+    option : 'a option -> 'a;
     record : (string * 'a) list -> 'a;
     tuple : 'a list -> 'a;
     sum : string -> 'a list -> 'a;
@@ -63,9 +66,11 @@ module Encode : sig
   val int : int encoder
   val string : string encoder
   val list : 'a encoder -> 'a list encoder
+  val option : 'a encoder -> 'a option encoder
 
   val map : ('a -> 'b) -> 'b encoder -> 'a encoder
   val array : 'a encoder -> 'a array encoder
+  val sequence : 'a encoder -> 'a sequence encoder
 
   (** {6 Heterogeneous List} *)
   type hlist =
@@ -147,6 +152,7 @@ module Decode : sig
     accept_int : 'src source -> int -> 'into;
     accept_string : 'src source -> string -> 'into;
     accept_list : 'src source -> 'src list -> 'into;
+    accept_option : 'src source -> 'src option -> 'into;
     accept_record : 'src source -> (string * 'src) list -> 'into;
     accept_tuple : 'src source -> 'src list -> 'into;
     accept_sum : 'src source -> string -> 'src list -> 'into;
@@ -168,7 +174,9 @@ module Decode : sig
   val string : string decoder
 
   val list : 'a decoder -> 'a list decoder
+  val option : 'a decoder -> 'a option decoder
   val array : 'a decoder -> 'a array decoder
+  val sequence : 'a decoder -> 'a sequence decoder
 
   val map : ('a -> 'b) -> 'a decoder -> 'b decoder
   (** Map the decoded value *)

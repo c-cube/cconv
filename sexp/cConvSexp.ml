@@ -40,6 +40,7 @@ let target =
     int = (fun i -> Atom (string_of_int i));
     string = (fun s -> Atom (String.escaped s));
     list = (fun l -> List l);
+    option = (function None -> List[] | Some x -> List [x]);
     record = (fun l -> List (List.map (fun (a,b) -> List [Atom a; b]) l));
     tuple = (fun l -> List l);
     sum = (fun name l -> match l with

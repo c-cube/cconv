@@ -40,6 +40,7 @@ let target =
     float = (fun f -> `Atom (string_of_float f));
     int = (fun i -> `Atom (string_of_int i));
     string = (fun s -> `Atom (String.escaped s));
+    option = (function None -> `List[] | Some x -> `List [x]);
     list = (fun l -> `List l);
     record = (fun l -> `List (List.map (fun (a,b) -> `List [`Atom a; b]) l));
     tuple = (fun l -> `List l);
