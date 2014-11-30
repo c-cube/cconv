@@ -44,15 +44,29 @@ module Point = struct
   let p = { x=1; y=2; color="red"; prev=None; }
   let p2 = {x=1; y=3; color="yellow"; prev=Some p; }
 end ;;
+module Point : sig ... end
 
 (* convert into json *)
 #require "cconv.yojson";;
 
 CConvYojson.encode Point.encode Point.p;;
+- : CConvYojson.t = `Assoc [
+    ("x", `Int 1);
+    ("y", `Int 2); ("color", `String "red");
+    ("prev", `String "none")]
 
 let json = CConvYojson.encode Point.encode Point.p2;;
+val json : CConvYojson.t =                                                                                                                                                         `Assoc                                                                                                                                                                             [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");                                                                                                                  
+     ("prev", `List [`String "some"; `Assoc [("x", `Int 1);
+     ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])]
 
 let p2' = CConvYojson.decode Point.decode json;;
+val p2' : Point.t CConvYojson.or_error =
+    `Ok {Point.x = 1; y = 3; color = "yellow";
+    prev = Some {Point.x = 1; y = 2; color = "red"; prev = None}}
+
+match p2' with `Ok x -> x = Point.p2 | `Error e -> failwith e;;
+- : bool = true
 
 module Lambda = struct
   type t =
@@ -88,13 +102,19 @@ module Lambda = struct
 
   let t1 = Lambda ("x", App (Lambda ("y", App (Var "y", Var "x")), Var "x"))
 end;;
+module Lambda : sig ... end
 
 (*convert into bencode *)
 #require "cconv.bencode";;
 
-let b = CConvBencode.encode Lambda.encode t1;;
+let b = CConvBencode.encode Lambda.encode Lambda.t1;;
+val b : Bencode.t = ...
 
-let t2 = CConvBencode.decode Lambda.decode t2;;
+let t2 = CConvBencode.decode Lambda.decode b;;
+val t2 : Lambda.t CConvBencode.or_error =
+    `Ok (Lambda.Lambda ("x", Lambda.App
+        (Lambda.Lambda ("y", Lambda.App (Lambda.Var "y",
+        Lambda.Var "x")), Lambda.Var "x")))
 
 ```
 
