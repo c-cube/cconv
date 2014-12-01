@@ -26,6 +26,10 @@ Flag "example"
   Description:  Build examples
   Default:      false
 
+Flag "bench"
+  Description:  Build benchmarks (require "benchmark")
+  Default:      false
+
 Library "cconv"
   Path:             src
   Pack:             false
@@ -73,6 +77,14 @@ Executable "example"
   MainIs:           all.ml
   BuildDepends:     cconv
   Build$:           flag(example)
+  Install:          false
+
+Executable "run_bench"
+  Path:             bench
+  MainIs:           run_bench.ml
+  CompiledObject:   native
+  BuildDepends:     cconv, cconv.yojson, ppx_deriving_yojson, benchmark
+  Build$:           flag(bench)
   Install:          false
 
 Document doc
