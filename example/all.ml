@@ -12,14 +12,18 @@ module Point = struct
   }
 
   let encode = CConv.Encode.(record_fix
-    (fun self {x;y;color;prev} ->
-      ("x", int, x) @->
-      ("y", int, y) @->
-      ("color", string, color) @->
-      ("prev", option self, prev) @->
-      record_end
+    (fun self ->
+      let o_self = option self in
+      {record_emit=fun into {x;y;color;prev} ->
+        [ "x", int.emit into x
+        ; "y", int.emit into y
+        ; "color", string.emit into color
+        ; "prev", o_self.emit into prev
+        ]
+      }
     )
   ) ;;
+
 
   let decode = CConv.Decode.(record_fix
     (fun self -> { record_accept=fun src l ->
@@ -42,11 +46,11 @@ module Lambda = struct
     | Lambda of string * t
 
   let encode = CConv.Encode.(sum_fix
-    (fun self t -> match t with
-      | Var s -> "var", hcons string s hnil
-      | App (t1,t2) -> "app", hcons self t1 @@ hcons self t2 @@ hnil
-      | Lambda (v,t') -> "lambda", hcons string v @@ hcons self t' @@ hnil
-    )
+    (fun self -> {sum_emit=fun into t -> match t with
+      | Var s -> "var", [string.emit into s]
+      | App (t1,t2) -> "app", [self.emit into t1; self.emit into t2]
+      | Lambda (v,t') -> "lambda", [string.emit into v; self.emit into t']
+    })
   )
 
   let decode = CConv.Decode.(sum_fix

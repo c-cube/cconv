@@ -110,57 +110,31 @@ module Encode = struct
   let sequence encode_x =
     map seq_to_list (list encode_x)
 
-  (** {6 Heterogeneous List} *)
-  type hlist =
-    | HNil : hlist
-    | HCons : 'a encoder * 'a * hlist -> hlist
-
-  let hnil = HNil
-  let hcons e x tail = HCons (e,x,tail)
-  let (@::) (e, x) tail = HCons (e,x,tail)
-
   (** {6 Composite Types} *)
 
-  type record_fields =
-    | RecordEnd : record_fields (** Empty record *)
-    | RecordField :
-      string (** name *)
-      * 'a encoder  (** how to encode the value *)
-      * 'a  (** value *)
-      * record_fields  (** Rest *)
-      -> record_fields
+  let apply into enc x = enc.emit into x
 
-  let rec apply_fields : type a. a target -> record_fields -> (string * a) list
-    = fun into f -> match f with
-    | RecordEnd -> []
-    | RecordField (name, enc_x, x, tail) ->
-        (name, enc_x.emit into x) :: apply_fields into tail
-
-  let record_end = RecordEnd
-  let field name enc_x x tail = RecordField (name,enc_x,x,tail)
-  let (@->) (name,enc_x,x) tail = RecordField (name,enc_x,x,tail)
+  type 'r record_encoder = {
+    record_emit : 'into. 'into target -> 'r -> (string * 'into) list;
+  }
 
   let record f = {emit=fun into r ->
-    let fields = f r in
-    into.record (apply_fields into fields)
+    into.record (f.record_emit into r)
   }
 
   let record_fix f =
     let rec f' = {emit=fun into r ->
-      let fields = f f' r in
-      into.record (apply_fields into fields)
-    } in
+      let fields = (Lazy.force emit).record_emit into r in
+      into.record fields
+    } and emit = lazy (f f') in
     f'
 
-  let rec apply_hlist : type a. a target -> hlist -> a list
-    = fun into l -> match l with
-    | HNil -> []
-    | HCons (enc_x, x, tail) ->
-        enc_x.emit into x :: apply_hlist into tail
+  type 't tuple_encoder = {
+    tuple_emit : 'into. 'into target -> 't -> 'into list;
+  }
 
   let tuple f = {emit=fun into x ->
-    let hlist = f x in
-    into.tuple (apply_hlist into hlist)
+    into.tuple (f.tuple_emit into x)
   }
 
   let pair enc_x enc_y = {emit=fun into (x,y) ->
@@ -176,9 +150,13 @@ module Encode = struct
                 enc_z.emit into z; enc_w.emit into w]
   }
 
+  type 's sum_encoder = {
+    sum_emit : 'into. 'into target -> 's -> string * 'into list
+  }
+
   let sum f = {emit=fun into x ->
-    let name, args = f x in
-    into.sum name (apply_hlist into args)
+    let name, args = f.sum_emit into x in
+    into.sum name args
   }
 
   let sum0 f = {emit=fun into x ->
@@ -188,9 +166,10 @@ module Encode = struct
 
   let sum_fix f =
     let rec f' = {emit=fun into x ->
-      let name, args = f f' x in
-      into.sum name (apply_hlist into args)
-    } in
+      let name, args = (Lazy.force emit).sum_emit into x in
+      into.sum name args
+    }
+  and emit = lazy (f f') in
     f'
 end
 

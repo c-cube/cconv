@@ -72,47 +72,34 @@ module Encode : sig
   val array : 'a encoder -> 'a array encoder
   val sequence : 'a encoder -> 'a sequence encoder
 
-  (** {6 Heterogeneous List} *)
-  type hlist =
-    | HNil : hlist
-    | HCons : 'a encoder * 'a * hlist -> hlist
-
-  val hnil : hlist
-  val hcons : 'a encoder -> 'a -> hlist -> hlist
-  val (@::) : ('a encoder * 'a) -> hlist -> hlist
-
   (** {6 Composite Types} *)
 
-  type record_fields =
-    | RecordEnd : record_fields (** Empty record *)
-    | RecordField :
-      string (** name *)
-      * 'a encoder  (** how to encode value *)
-      * 'a  (** value *)
-      * record_fields  (** Rest *)
-      -> record_fields
+  val apply : 'into target -> 'src encoder -> 'src -> 'into
+  (** Helper to apply an encoder to a value *)
 
-  val record_end : record_fields
-  val field : string -> 'a encoder -> 'a ->
-              record_fields -> record_fields
+  type 'r record_encoder = {
+    record_emit : 'into. 'into target -> 'r -> (string * 'into) list;
+  }
 
-  val (@->) : (string * 'a encoder * 'a) ->
-              record_fields -> record_fields
-  (** Infix constructor for record fields. Example:
+  val record : 'r record_encoder -> 'r encoder
+  val record_fix : ('r encoder -> 'r record_encoder) -> 'r encoder
+
+  (** Example:
   {[ type point = {x:int; y:int; c:string};;
    let enc_point = record
-     (fun {x;y;c} ->
-        ("x", int, x) @->
-        ("y", int, y) @->
-        ("c", string, c) @->
-        record_end
-     ) ;;
+     {record_emit=fun into {x;y;c} ->
+        [ "x", into.int x
+        ; "y", into.int y
+        ; "c", into.string c
+        ]
+    } ;;
   ]} *)
 
-  val record : ('r -> record_fields) -> 'r encoder
-  val record_fix : ('r encoder -> 'r -> record_fields) -> 'r encoder
+  type 't tuple_encoder = {
+    tuple_emit : 'into. 'into target -> 't -> 'into list;
+  }
 
-  val tuple : ('a ->  hlist) -> 'a encoder
+  val tuple : 'a tuple_encoder -> 'a encoder
   (** General encoding of tuples *)
 
   val pair : 'a encoder ->
@@ -128,10 +115,14 @@ module Encode : sig
              'd encoder ->
              ('a * 'b * 'c * 'd) encoder
 
-  val sum : ('a -> string *  hlist) -> 'a encoder
+  type 's sum_encoder = {
+    sum_emit : 'into. 'into target -> 's -> string * 'into list
+  }
+
+  val sum : 'a sum_encoder -> 'a encoder
   val sum0 : ('a -> string) -> 'a encoder (** Constant sums *)
 
-  val sum_fix : ('a encoder -> 'a -> string * hlist) -> 'a encoder
+  val sum_fix : ('a encoder -> 'a sum_encoder) -> 'a encoder
 
   val option : 'a encoder -> 'a option encoder
 end
