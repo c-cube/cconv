@@ -124,6 +124,16 @@ module Encode : sig
 
   val sum_fix : ('a encoder -> 'a sum_encoder) -> 'a encoder
 
+  (** Example:
+  {[ type tree = Empty | Leaf of int | Node of tree * tree;;
+  let encode_tree = sum_fix
+    (fun self -> {sum_emit=fun into x -> match x with
+      | Empty -> "empty", []
+      | Leaf i -> "leaf", [int.emit into i]
+      | Node (l,r) -> "node", [self.emit into l; self.emit into r]
+    });;
+  ]} *)
+
   val option : 'a encoder -> 'a option encoder
 end
 

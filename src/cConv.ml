@@ -259,7 +259,7 @@ module Decode = struct
     accept_unit=(fun _ _ -> "()");
     accept_bool=(fun _ x ->string_of_bool x);
     accept_string=(fun _ x -> x);
-    accept_sum=(fun src name args ->
+    accept_sum=(fun _src name args ->
       if args=[] then name else fail_ "sum"
     );
   }}
@@ -285,7 +285,7 @@ module Decode = struct
       | [x] -> Some (src.emit dec_x.dec x)
       | _ -> report_error "expected option, got list"
     );
-    accept_unit=(fun src () -> None);
+    accept_unit=(fun _src () -> None);
   }}
 
   let map f d = {dec=
@@ -351,9 +351,6 @@ module Decode = struct
   type 'into record_decoder = {
     record_accept : 'src. 'src source -> (string * 'src) list -> 'into;
   }
-
-  type assoc_pair =
-    | AssocPair : 'src source * string * 'src -> assoc_pair
 
   (* put an item of an association list into [r] *)
   let get_assoc_pair () = {
