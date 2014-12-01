@@ -109,7 +109,38 @@ let bench_encoding_term () =
     ; "deriving_yojson", bench_encoding Lambda.to_yojson, Lambda.t1
     ]
 
+(* decode x with decoder *)
+let bench_decoding dec x () =
+  for _ = 1 to 10 do
+    match dec x with
+    | `Error msg -> failwith msg
+    | `Ok _ -> ()
+  done
+
+let bench_decoding_point () =
+  print_endline "\nbenchmark points";
+  let j1 = CConvYojson.encode Point.encode Point.p' in
+  let j2 = Point.to_yojson Point.p' in
+  Benchmark.throughputN 3
+    [ "cconv", bench_decoding (CConvYojson.decode Point.decode) j1, ()
+    ; "deriving_yojson", bench_decoding Point.of_yojson j2, ()
+    ]
+
+let bench_decoding_term () =
+  print_endline "\nbenchmark terms";
+  let j1 = CConvYojson.encode Lambda.encode Lambda.t1 in
+  let j2 = Lambda.to_yojson Lambda.t1 in
+  Benchmark.throughputN 3
+    [ "cconv", bench_decoding (CConvYojson.decode Lambda.decode) j1, ()
+    ; "deriving_yojson", bench_decoding Lambda.of_yojson j2, ()
+    ]
+
+
 let () =
+  print_endline "encoding...\n";
   Benchmark.tabulate (bench_encoding_point ());
   Benchmark.tabulate (bench_encoding_term ());
+  print_endline "\n\ndecoding...\n";
+  Benchmark.tabulate (bench_decoding_point ());
+  Benchmark.tabulate (bench_decoding_term ());
   ()
