@@ -69,7 +69,7 @@ module Encode = struct
       let l = List.map (fun (name,s) -> name ^ "=" ^ s) l in
       Printf.sprintf "{%s}" (String.concat "; " l)
     );
-    option=(function None -> "None"  | Some x -> "some " ^ x);
+    option=(function None -> "None"  | Some x -> "Some " ^ x);
     sum=(fun name l -> match l with
       | [] -> name
       | [x] -> Printf.sprintf "%s (%s)" name x
