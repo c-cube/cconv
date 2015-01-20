@@ -137,10 +137,13 @@ let bench_decoding_term () =
 
 
 let () =
-  print_endline "encoding...\n";
-  Benchmark.tabulate (bench_encoding_point ());
-  Benchmark.tabulate (bench_encoding_term ());
-  print_endline "\n\ndecoding...\n";
-  Benchmark.tabulate (bench_decoding_point ());
-  Benchmark.tabulate (bench_decoding_term ());
+  let tree = Benchmark.(Tree.(
+    concat
+      [ "encode" @>> "point" @> lazy (bench_encoding_point ())
+      ; "encode" @>> "term" @> lazy (bench_encoding_term ())
+      ; "decode" @>> "point" @> lazy (bench_decoding_point ())
+      ; "decode" @>> "term" @> lazy (bench_decoding_term ())
+      ]
+  )) in
+  Benchmark.Tree.run_main tree;
   ()
