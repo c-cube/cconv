@@ -49,7 +49,11 @@ module Encode = struct
     unit : 'a;
     bool : bool -> 'a;
     float : float -> 'a;
+    char : char -> 'a;
     int : int -> 'a;
+    nativeint : nativeint -> 'a;
+    int32 : int32 -> 'a;
+    int64 : int64 -> 'a;
     string : string -> 'a;
     list : 'a list -> 'a;
     option : 'a option -> 'a;
@@ -61,7 +65,11 @@ module Encode = struct
   let string_target = {
     unit="()";
     bool=string_of_bool;
+    char=String.make 1;
     int=string_of_int;
+    nativeint=Nativeint.to_string;
+    int32=Int32.to_string;
+    int64=Int64.to_string;
     float=string_of_float;
     string=(fun s -> "\"" ^ s ^ "\"");
     list=(fun l -> Printf.sprintf "[%s]" (String.concat "; " l));
@@ -83,7 +91,11 @@ module Encode = struct
   }
 
   let unit = {emit=fun into () -> into.unit}
+  let char = {emit=fun into x -> into.char x}
   let int = {emit=fun into i -> into.int i}
+  let nativeint = {emit=fun into i -> into.nativeint i}
+  let int32 = {emit=fun into i -> into.int32 i}
+  let int64 = {emit=fun into i -> into.int64 i}
   let bool = {emit=fun into b -> into.bool b}
   let float = {emit=fun into f -> into.float f}
   let string = {emit=fun into s -> into.string s}

@@ -20,14 +20,8 @@
 
 
 type 'a or_error = [ `Ok of 'a | `Error of string ]
-type t =
-  [ `Assoc of (string * Yojson.Basic.json) list
-  | `Bool of bool
-  | `Float of float
-  | `Int of int
-  | `List of Yojson.Basic.json list
-  | `Null
-  | `String of string ]
+
+type t = Yojson.Basic.json
 
 let source =
   let module D = CConv.Decode in
@@ -47,6 +41,10 @@ let output =
   { E.unit= `Null;
     bool = (fun b -> `Bool b);
     float = (fun f -> `Float f);
+    char = (fun c -> `String (String.make 1 c));
+    nativeint = (fun i -> `Int (Nativeint.to_int i));
+    int32 = (fun i -> `Int (Int32.to_int i));
+    int64 = (fun i -> `Int (Int64.to_int i));
     int = (fun i -> `Int i);
     string = (fun s -> `String s);
     list = (fun l -> `List l);

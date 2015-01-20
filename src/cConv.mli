@@ -44,7 +44,11 @@ module Encode : sig
     unit : 'a;
     bool : bool -> 'a;
     float : float -> 'a;
+    char : char -> 'a;
     int : int -> 'a;
+    nativeint : nativeint -> 'a;
+    int32 : int32 -> 'a;
+    int64 : int64 -> 'a;
     string : string -> 'a;
     list : 'a list -> 'a;
     option : 'a option -> 'a;
@@ -63,7 +67,11 @@ module Encode : sig
   val unit : unit encoder
   val bool : bool encoder
   val float : float encoder
+  val char : char encoder
   val int : int encoder
+  val nativeint : nativeint encoder
+  val int32 : int32 encoder
+  val int64 : int64 encoder
   val string : string encoder
   val list : 'a encoder -> 'a list encoder
   val option : 'a encoder -> 'a option encoder
@@ -82,7 +90,11 @@ module Encode : sig
   }
 
   val record : 'r record_encoder -> 'r encoder
+  (** Encode a record, using the polymorphic record {!record_encoder} to
+      generate an association list *)
+
   val record_fix : ('r encoder -> 'r record_encoder) -> 'r encoder
+  (** Fixpoint on record definition *)
 
   (** Example:
   {[ type point = {x:int; y:int; c:string};;
@@ -100,15 +112,17 @@ module Encode : sig
   }
 
   val tuple : 'a tuple_encoder -> 'a encoder
-  (** General encoding of tuples *)
+  (** General encoding of tuples (returns a list of values) *)
 
   val pair : 'a encoder ->
              'b encoder ->
              ('a * 'b) encoder
+
   val triple : 'a encoder ->
                'b encoder ->
                'c encoder ->
                ('a * 'b * 'c) encoder
+
   val quad : 'a encoder ->
              'b encoder ->
              'c encoder ->
@@ -120,9 +134,12 @@ module Encode : sig
   }
 
   val sum : 'a sum_encoder -> 'a encoder
-  val sum0 : ('a -> string) -> 'a encoder (** Constant sums *)
+
+  val sum0 : ('a -> string) -> 'a encoder
+  (** Constant sums, only put the name *)
 
   val sum_fix : ('a encoder -> 'a sum_encoder) -> 'a encoder
+  (** Fixpoint on sum types *)
 
   (** Example:
   {[ type tree = Empty | Leaf of int | Node of tree * tree;;
