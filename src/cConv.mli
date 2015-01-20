@@ -40,7 +40,7 @@ Helps encoding values into a serialization format (building
 values of some type 'a, such as a JSON tree) *)
 
 module Encode : sig
-  type 'a target = {
+  type 'a output = {
     unit : 'a;
     bool : bool -> 'a;
     float : float -> 'a;
@@ -53,11 +53,11 @@ module Encode : sig
     sum : string -> 'a list -> 'a;
   }
 
-  val string_target : string target
+  val string_target : string output
   (** Print values. Caution, inefficient! Should be used for debugging only *)
 
   type -'src encoder = {
-    emit : 'into. 'into target -> 'src -> 'into
+    emit : 'into. 'into output -> 'src -> 'into
   } (** A way to encode values of type ['src] into any serialization format *)
 
   val unit : unit encoder
@@ -74,11 +74,11 @@ module Encode : sig
 
   (** {6 Composite Types} *)
 
-  val apply : 'into target -> 'src encoder -> 'src -> 'into
+  val apply : 'into output -> 'src encoder -> 'src -> 'into
   (** Helper to apply an encoder to a value *)
 
   type 'r record_encoder = {
-    record_emit : 'into. 'into target -> 'r -> (string * 'into) list;
+    record_emit : 'into. 'into output -> 'r -> (string * 'into) list;
   }
 
   val record : 'r record_encoder -> 'r encoder
@@ -96,7 +96,7 @@ module Encode : sig
   ]} *)
 
   type 't tuple_encoder = {
-    tuple_emit : 'into. 'into target -> 't -> 'into list;
+    tuple_emit : 'into. 'into output -> 't -> 'into list;
   }
 
   val tuple : 'a tuple_encoder -> 'a encoder
@@ -116,7 +116,7 @@ module Encode : sig
              ('a * 'b * 'c * 'd) encoder
 
   type 's sum_encoder = {
-    sum_emit : 'into. 'into target -> 's -> string * 'into list
+    sum_emit : 'into. 'into output -> 's -> string * 'into list
   }
 
   val sum : 'a sum_encoder -> 'a encoder
@@ -277,7 +277,7 @@ end
 
 type 'a or_error = [ `Ok of 'a | `Error of string ]
 
-val encode : 'src Encode.encoder -> 'into Encode.target -> 'src -> 'into
+val encode : 'src Encode.encoder -> 'into Encode.output -> 'src -> 'into
 (** Encode a value into the serialization format ['into] *)
 
 val to_string : 'src Encode.encoder -> 'src -> string

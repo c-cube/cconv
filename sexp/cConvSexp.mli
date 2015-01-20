@@ -26,7 +26,7 @@ type t = Sexplib.Sexp.t =
   | Atom of string
   | List of t list
 
-val target : t CConv.Encode.target
+val output : t CConv.Encode.output
 val source : t CConv.Decode.source
 
 val encode : 'src CConv.Encode.encoder -> 'src -> t

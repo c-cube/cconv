@@ -42,7 +42,7 @@ let source =
   } in
   src
 
-let target =
+let output =
   let module E = CConv.Encode in
   { E.unit= `Null;
     bool = (fun b -> `Bool b);
@@ -60,7 +60,7 @@ let target =
 
 let json_to_string s = Yojson.Basic.to_string ~std:true s
 
-let encode src x = CConv.encode src target x
+let encode src x = CConv.encode src output x
 
 let decode dec x = CConv.decode source dec x
 

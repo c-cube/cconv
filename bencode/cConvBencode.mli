@@ -24,7 +24,7 @@ type 'a or_error = [ `Ok of 'a | `Error of string ]
 
 type t = Bencode.t
 
-val target : t CConv.Encode.target
+val output : t CConv.Encode.output
 val source : t CConv.Decode.source
 
 val encode : 'src CConv.Encode.encoder -> 'src -> t

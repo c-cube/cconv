@@ -78,9 +78,11 @@ CConvYojson.encode Point.encode Point.p;;
     ("prev", `String "none")]
 
 let json = CConvYojson.encode Point.encode Point.p2;;
-val json : CConvYojson.t =                                                                                                                                                         `Assoc                                                                                                                                                                             [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");
+val json : CConvYojson.t = `Assoc
+    [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");
      ("prev", `List [`String "some"; `Assoc [("x", `Int 1);
-     ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])]
+     ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])
+     ]
 
 let p2' = CConvYojson.decode Point.decode json;;
 val p2' : Point.t CConvYojson.or_error =

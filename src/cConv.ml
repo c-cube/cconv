@@ -45,7 +45,7 @@ let _get_field l name =
     report_error "record field %s not found in source" name
 
 module Encode = struct
-  type 'a target = {
+  type 'a output = {
     unit : 'a;
     bool : bool -> 'a;
     float : float -> 'a;
@@ -79,7 +79,7 @@ module Encode = struct
   }
 
   type -'src encoder = {
-    emit : 'into. 'into target -> 'src -> 'into
+    emit : 'into. 'into output -> 'src -> 'into
   }
 
   let unit = {emit=fun into () -> into.unit}
@@ -115,7 +115,7 @@ module Encode = struct
   let apply into enc x = enc.emit into x
 
   type 'r record_encoder = {
-    record_emit : 'into. 'into target -> 'r -> (string * 'into) list;
+    record_emit : 'into. 'into output -> 'r -> (string * 'into) list;
   }
 
   let record f = {emit=fun into r ->
@@ -130,7 +130,7 @@ module Encode = struct
     f'
 
   type 't tuple_encoder = {
-    tuple_emit : 'into. 'into target -> 't -> 'into list;
+    tuple_emit : 'into. 'into output -> 't -> 'into list;
   }
 
   let tuple f = {emit=fun into x ->
@@ -151,7 +151,7 @@ module Encode = struct
   }
 
   type 's sum_encoder = {
-    sum_emit : 'into. 'into target -> 's -> string * 'into list
+    sum_emit : 'into. 'into output -> 's -> string * 'into list
   }
 
   let sum f = {emit=fun into x ->

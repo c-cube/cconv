@@ -31,7 +31,7 @@ let source =
   } in
   src
 
-let target =
+let output =
   let module E = CConv.Encode in
   { E.unit = Bencode.Integer 0;
     bool = (fun b -> Bencode.Integer (if b then 1 else 0));
@@ -49,7 +49,7 @@ let target =
 
 let bencode_to_string = Bencode.encode_to_string
 
-let encode src x = CConv.encode src target x
+let encode src x = CConv.encode src output x
 
 let decode dec x = CConv.decode source dec x
 

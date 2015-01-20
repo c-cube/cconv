@@ -33,7 +33,7 @@ let source =
   } in
   src
 
-let target =
+let output =
   let module E = CConv.Encode in
   { E.unit = `List [];
     bool = (fun b -> `Atom (string_of_bool b));
@@ -49,7 +49,7 @@ let target =
       | _::_ -> `List (`Atom name :: l));
   }
 
-let encode src x = CConv.encode src target x
+let encode src x = CConv.encode src output x
 
 let decode dec x = CConv.decode source dec x
 
