@@ -168,6 +168,10 @@ module Decode : sig
     accept_bool : 'src source -> bool -> 'into;
     accept_float : 'src source -> float -> 'into;
     accept_int : 'src source -> int -> 'into;
+    accept_int32 : 'src source -> int32 -> 'into;
+    accept_int64 : 'src source -> int64 -> 'into;
+    accept_nativeint : 'src source -> nativeint -> 'into;
+    accept_char : 'src source -> char -> 'into;
     accept_string : 'src source -> string -> 'into;
     accept_list : 'src source -> 'src list -> 'into;
     accept_option : 'src source -> 'src option -> 'into;
@@ -186,6 +190,10 @@ module Decode : sig
   (** {6 Decoder Combinators} *)
 
   val int : int decoder
+  val char : char decoder
+  val int32 : int32 decoder
+  val int64 : int64 decoder
+  val nativeint : nativeint decoder
   val float : float decoder
   val bool : bool decoder
   val unit : unit decoder

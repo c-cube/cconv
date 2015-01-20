@@ -195,6 +195,10 @@ module Decode = struct
     accept_bool : 'src source -> bool -> 'into;
     accept_float : 'src source -> float -> 'into;
     accept_int : 'src source -> int -> 'into;
+    accept_int32 : 'src source -> int32 -> 'into;
+    accept_int64 : 'src source -> int64 -> 'into;
+    accept_nativeint : 'src source -> nativeint -> 'into;
+    accept_char : 'src source -> char -> 'into;
     accept_string : 'src source -> string -> 'into;
     accept_list : 'src source -> 'src list -> 'into;
     accept_option : 'src source -> 'src option -> 'into;
@@ -216,6 +220,10 @@ module Decode = struct
   let failing =
     { accept_unit=(fun _ _ -> fail_ "unit")
     ; accept_int=(fun _ _ -> fail_ "int")
+    ; accept_nativeint=(fun _ _ -> fail_ "nativeint")
+    ; accept_int32=(fun _ _ -> fail_ "int32")
+    ; accept_int64=(fun _ _ -> fail_ "int64")
+    ; accept_char=(fun _ _ -> fail_ "char")
     ; accept_float=(fun _ _ -> fail_ "float")
     ; accept_bool=(fun _ _ -> fail_ "bool")
     ; accept_string=(fun _ _ -> fail_ "string")
@@ -226,12 +234,60 @@ module Decode = struct
     ; accept_tuple=(fun _ _ -> fail_ "tuple")
   }
 
+  let char = {dec={
+    failing with
+    accept_char=(fun _ c -> c);
+    accept_int=(fun _ x -> Char.chr x);
+    accept_string=(fun _ s ->
+      if String.length s = 1 then String.get s 0 else fail_ "string"
+    );
+  }}
+
   let int = {dec={
     failing with
     accept_int=(fun _ x -> x);
+    accept_nativeint=(fun _ x -> Nativeint.to_int x);
+    accept_int32=(fun _ x -> Int32.to_int x);
+    accept_int64=(fun _ x -> Int64.to_int x);
     accept_float=(fun _ x-> int_of_float x);
     accept_string=(fun _ s ->
       try int_of_string s with Failure _ -> fail_ "string"
+    );
+  }}
+
+  let nativeint = {dec={
+    failing with
+    accept_int=(fun _ x -> Nativeint.of_int x);
+    accept_nativeint=(fun _ x -> x);
+    accept_int32=(fun _ x -> Nativeint.of_int32 x);
+    accept_int64=(fun _ x -> Int64.to_nativeint x);
+    accept_float=(fun _ x-> Nativeint.of_float x);
+    accept_string=(fun _ s ->
+      try Nativeint.of_string s with Failure _ -> fail_ "string"
+    );
+  }}
+
+  let int32 = {dec={
+    failing with
+    accept_int=(fun _ x -> Int32.of_int x);
+    accept_nativeint=(fun _ x -> Nativeint.to_int32 x);
+    accept_int32=(fun _ x -> x);
+    accept_int64=(fun _ x -> Int64.to_int32 x);
+    accept_float=(fun _ x-> Int32.of_float x);
+    accept_string=(fun _ s ->
+      try Int32.of_string s with Failure _ -> fail_ "string"
+    );
+  }}
+
+  let int64 = {dec={
+    failing with
+    accept_int=(fun _ x -> Int64.of_int x);
+    accept_nativeint=(fun _ x -> Int64.of_nativeint x);
+    accept_int32=(fun _ x -> Int64.of_int32 x);
+    accept_int64=(fun _ x -> x);
+    accept_float=(fun _ x-> Int64.of_float x);
+    accept_string=(fun _ s ->
+      try Int64.of_string s with Failure _ -> fail_ "string"
     );
   }}
 
@@ -304,7 +360,11 @@ module Decode = struct
     { accept_unit=(fun src x -> f (d.dec.accept_unit src x))
     ; accept_bool=(fun src x -> f (d.dec.accept_bool src x))
     ; accept_float=(fun src x -> f (d.dec.accept_float src x))
+    ; accept_char=(fun src x -> f (d.dec.accept_char src x))
     ; accept_int=(fun src x -> f (d.dec.accept_int src x))
+    ; accept_int32=(fun src x -> f (d.dec.accept_int32 src x))
+    ; accept_int64=(fun src x -> f (d.dec.accept_int64 src x))
+    ; accept_nativeint=(fun src x -> f (d.dec.accept_nativeint src x))
     ; accept_string=(fun src x -> f (d.dec.accept_string src x))
     ; accept_list=(fun src l -> f (d.dec.accept_list src l))
     ; accept_option=(fun src x -> f (d.dec.accept_option src x))
