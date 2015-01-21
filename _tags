@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 61d0513686de7d729d3fa3907630b4c5)
+# DO NOT EDIT (digest: 6e9dbba0f8b55b768a1beacded04319d)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -16,6 +16,10 @@ true: annot, bin_annot
 "_darcs": not_hygienic
 # Library cconv
 "src/cconv.cmxs": use_cconv
+# Library ppx_deriving_cconv
+"ppx/ppx_deriving_cconv.cmxs": use_ppx_deriving_cconv
+<ppx/*.ml{,i,y}>: pkg_ppx_deriving.api
+<ppx/*.ml{,i,y}>: pkg_ppx_tools.metaquot
 # Library cconv_sexp
 "sexp/cconv_sexp.cmxs": use_cconv_sexp
 <sexp/*.ml{,i,y}>: pkg_sexplib
@@ -45,7 +49,22 @@ true: annot, bin_annot
 <bench/*.ml{,i,y}>: pkg_yojson
 <bench/*.ml{,i,y}>: use_cconv
 <bench/*.ml{,i,y}>: use_cconv_yojson
+# Executable run_tests_ppx
+"tests/run_tests_ppx.byte": pkg_bencode
+"tests/run_tests_ppx.byte": pkg_oUnit
+"tests/run_tests_ppx.byte": pkg_ppx_deriving.std
+"tests/run_tests_ppx.byte": pkg_yojson
+"tests/run_tests_ppx.byte": use_cconv
+"tests/run_tests_ppx.byte": use_cconv_bencode
+"tests/run_tests_ppx.byte": use_cconv_yojson
+<tests/*.ml{,i,y}>: pkg_bencode
+<tests/*.ml{,i,y}>: pkg_oUnit
+<tests/*.ml{,i,y}>: pkg_ppx_deriving.std
+<tests/*.ml{,i,y}>: pkg_yojson
+<tests/*.ml{,i,y}>: use_cconv
+<tests/*.ml{,i,y}>: use_cconv_bencode
+<tests/*.ml{,i,y}>: use_cconv_yojson
 # OASIS_STOP
 true: bin_annot
 <src/**/*.ml>: warn_A, warn(-4), warn(-44)
-<tests/**/*ppx*.{ml,native,cm*}>: use_ppx_cconv
+<tests/**/*ppx*.*>: use_ppx_cconv

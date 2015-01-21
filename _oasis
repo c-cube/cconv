@@ -102,6 +102,20 @@ Executable "run_bench"
   Build$:           flag(bench)
   Install:          false
 
+Executable "run_tests_ppx"
+  Path:             tests
+  MainIs:           run_tests_ppx.ml
+  CompiledObject:   native
+  Build$:           flag(tests) && flag(ppx) && flag(yojson) && flag(bencode)
+  BuildDepends:     cconv, cconv.yojson, cconv.bencode, yojson, bencode,
+                    ppx_deriving.std, oUnit
+  Install:          false
+
+Test all
+  Command:          ./run_tests_ppx.native
+  TestTools:        run_tests_ppx
+  Run$:             flag(tests) && flag(ppx) && flag(yojson) && flag(bencode)
+
 Document doc
   Title:                Documentation for CConv
   Type:                 ocamlbuild (0.3)
