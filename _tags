@@ -48,3 +48,4 @@ true: annot, bin_annot
 # OASIS_STOP
 true: bin_annot
 <src/**/*.ml>: warn_A, warn(-4), warn(-44)
+<tests/**/*ppx*.{ml,native,cm*}>: use_ppx_cconv

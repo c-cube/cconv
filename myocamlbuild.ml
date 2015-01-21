@@ -636,3 +636,17 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 # 637 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
+
+open Ocamlbuild_plugin
+
+(* ppx_deriving *)
+let () = dispatch (MyOCamlbuildBase.dispatch_combine [
+  begin function
+  | After_rules ->
+    flag
+      ["ocaml"; "compile"; "use_ppx_cconv"] &
+      S[A"-ppxopt"; A"ppx_deriving,ppx/ppx_deriving_cconv.cma"];
+  | _ -> ()
+  end
+  ; dispatch_default
+])

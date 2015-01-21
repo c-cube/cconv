@@ -10,6 +10,10 @@ BuildTools:  ocamlbuild
 
 Synopsis:    Combinators for Conversion
 
+Flag "ppx"
+  Description:  Build and install ppx_deriving_cconv, to derive encoders and decoders
+  Default:      false
+
 Flag "sexp"
   Description:  Build and install the interface to Sexplib (requires Sexplib)
   Default:      false
@@ -34,6 +38,17 @@ Library "cconv"
   Path:             src
   Pack:             false
   Modules:          CConv
+
+Library "ppx_deriving_cconv"
+  Path:             ppx/
+  Modules:          Ppx_deriving_cconv
+  BuildDepends:     ppx_tools.metaquot, ppx_deriving.api
+  FindlibParent:    cconv
+  FindlibName:      ppx
+  Build$:           flag(ppx)
+  Install$:         flag(ppx)
+  XMETAEnable:      false
+
 
 Library "cconv_sexp"
   Path:             sexp
