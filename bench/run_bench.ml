@@ -137,13 +137,12 @@ let bench_decoding_term () =
 
 
 let () =
-  let tree = Benchmark.(Tree.(
+  Benchmark.(Tree.(register (
     concat
       [ "encode" @>> "point" @> lazy (bench_encoding_point ())
       ; "encode" @>> "term" @> lazy (bench_encoding_term ())
       ; "decode" @>> "point" @> lazy (bench_decoding_point ())
       ; "decode" @>> "term" @> lazy (bench_decoding_term ())
       ]
-  )) in
-  Benchmark.Tree.run_main tree;
-  ()
+  )));
+  Benchmark.Tree.run_global ()
