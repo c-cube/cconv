@@ -31,114 +31,114 @@ This code is free, under the BSD license. See the `LICENSE` file.
 From `example/all.ml`:
 
 ```ocaml
-#require "cconv";;
+    #require "cconv";;
 
-module Point = struct
-  type t = {
-    x : int;
-    y : int;
-    color : string;
-    prev : t option; (* previous position, say *)
-  }
+    module Point = struct
+      type t = {
+        x : int;
+        y : int;
+        color : string;
+        prev : t option; (* previous position, say *)
+      }
 
 
-  let encode = CConv.Encode.(record_fix
-    (fun self ->
-      let o_self = option self in
-      {record_emit=fun into {x;y;color;prev} ->
-        [ "x", int.emit into x
-        ; "y", int.emit into y
-        ; "color", string.emit into color
-        ; "prev", o_self.emit into prev
-        ]
-      })) ;;
+      let encode = CConv.Encode.(record_fix
+        (fun self ->
+          let o_self = option self in
+          {record_emit=fun into {x;y;color;prev} ->
+            [ "x", int.emit into x
+            ; "y", int.emit into y
+            ; "color", string.emit into color
+            ; "prev", o_self.emit into prev
+            ]
+          })) ;;
 
-  let decode = CConv.Decode.(record_fix
-    (fun self -> { record_accept=fun src l ->
-      let x = record_get "x" int src l in
-      let y = record_get "y" int src l in
-      let color = record_get "color" string src l in
-      let prev = record_get "prev" (option self) src l in
-      {x;y;color;prev}
-    })
-  )
+      let decode = CConv.Decode.(record_fix
+        (fun self -> { record_accept=fun src l ->
+          let x = record_get "x" int src l in
+          let y = record_get "y" int src l in
+          let color = record_get "color" string src l in
+          let prev = record_get "prev" (option self) src l in
+          {x;y;color;prev}
+        })
+      )
 
-  let p = { x=1; y=2; color="red"; prev=None; }
-  let p2 = {x=1; y=3; color="yellow"; prev=Some p; }
-end ;;
-module Point : sig ... end
+      let p = { x=1; y=2; color="red"; prev=None; }
+      let p2 = {x=1; y=3; color="yellow"; prev=Some p; }
+    end ;;
+    module Point : sig ... end
 
-(* convert into json *)
-#require "cconv.yojson";;
+    (* convert into json *)
+    #require "cconv.yojson";;
 
-CConvYojson.encode Point.encode Point.p;;
-- : CConvYojson.t = `Assoc [
-    ("x", `Int 1);
-    ("y", `Int 2); ("color", `String "red");
-    ("prev", `String "none")]
+    CConvYojson.encode Point.encode Point.p;;
+    - : CConvYojson.t = `Assoc [
+        ("x", `Int 1);
+        ("y", `Int 2); ("color", `String "red");
+        ("prev", `String "none")]
 
-let json = CConvYojson.encode Point.encode Point.p2;;
-val json : CConvYojson.t = `Assoc
-    [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");
-     ("prev", `List [`String "some"; `Assoc [("x", `Int 1);
-     ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])
-     ]
+    let json = CConvYojson.encode Point.encode Point.p2;;
+    val json : CConvYojson.t = `Assoc
+        [("x", `Int 1); ("y", `Int 3); ("color", `String "yellow");
+         ("prev", `List [`String "some"; `Assoc [("x", `Int 1);
+         ("y", `Int 2); ("color", `String "red"); ("prev", `String "none")]])
+         ]
 
-let p2' = CConvYojson.decode Point.decode json;;
-val p2' : Point.t CConvYojson.or_error =
-    `Ok {Point.x = 1; y = 3; color = "yellow";
-    prev = Some {Point.x = 1; y = 2; color = "red"; prev = None}}
+    let p2' = CConvYojson.decode Point.decode json;;
+    val p2' : Point.t CConvYojson.or_error =
+        `Ok {Point.x = 1; y = 3; color = "yellow";
+        prev = Some {Point.x = 1; y = 2; color = "red"; prev = None}}
 
-match p2' with `Ok x -> x = Point.p2 | `Error e -> failwith e;;
-- : bool = true
+    match p2' with `Ok x -> x = Point.p2 | `Error e -> failwith e;;
+    - : bool = true
 
-module Lambda = struct
-  type t =
-    | Var of string
-    | App of t * t
-    | Lambda of string * t
+    module Lambda = struct
+      type t =
+        | Var of string
+        | App of t * t
+        | Lambda of string * t
 
-  let encode = CConv.Encode.(sum_fix
-    (fun self -> {sum_emit=fun into t -> match t with
-      | Var s -> "var", [string.emit into s]
-      | App (t1,t2) -> "app", [self.emit into t1; self.emit into t2]
-      | Lambda (v,t') -> "lambda", [string.emit into v; self.emit into t']
-    })
-  )
+      let encode = CConv.Encode.(sum_fix
+        (fun self -> {sum_emit=fun into t -> match t with
+          | Var s -> "var", [string.emit into s]
+          | App (t1,t2) -> "app", [self.emit into t1; self.emit into t2]
+          | Lambda (v,t') -> "lambda", [string.emit into v; self.emit into t']
+        })
+      )
 
-  let decode = CConv.Decode.(sum_fix
-    (fun self -> {
-      sum_accept=fun src name args -> match name, args with
-        | "var", [x] ->
-            let x = apply src string x in
-            Var x
-        | "app", [x;y] ->
-            let x = apply src self x in
-            let y = apply src self y in
-            App(x,y)
-        | "lambda", [x;y] ->
-            let x = apply src string x in
-            let y = apply src self y in
-            Lambda(x,y)
-        | _ -> CConv.report_error "expected lambda-term"
-    })
-  )
+      let decode = CConv.Decode.(sum_fix
+        (fun self -> {
+          sum_accept=fun src name args -> match name, args with
+            | "var", [x] ->
+                let x = apply src string x in
+                Var x
+            | "app", [x;y] ->
+                let x = apply src self x in
+                let y = apply src self y in
+                App(x,y)
+            | "lambda", [x;y] ->
+                let x = apply src string x in
+                let y = apply src self y in
+                Lambda(x,y)
+            | _ -> CConv.report_error "expected lambda-term"
+        })
+      )
 
-  let t1 = Lambda ("x", App (Lambda ("y", App (Var "y", Var "x")), Var "x"))
-end;;
-module Lambda : sig ... end
+      let t1 = Lambda ("x", App (Lambda ("y", App (Var "y", Var "x")), Var "x"))
+    end;;
+    module Lambda : sig ... end
 
-(*convert into bencode *)
-#require "cconv.bencode";;
+    (*convert into bencode *)
+    #require "cconv.bencode";;
 
-let b = CConvBencode.encode Lambda.encode Lambda.t1;;
-val b : Bencode.t = ...
+    let b = CConvBencode.encode Lambda.encode Lambda.t1;;
+    val b : Bencode.t = ...
 
-let t2 = CConvBencode.decode Lambda.decode b;;
-val t2 : Lambda.t CConvBencode.or_error =
-    `Ok (Lambda.Lambda ("x", Lambda.App
-        (Lambda.Lambda ("y", Lambda.App (Lambda.Var "y",
-        Lambda.Var "x")), Lambda.Var "x")))
+    let t2 = CConvBencode.decode Lambda.decode b;;
+    val t2 : Lambda.t CConvBencode.or_error =
+        `Ok (Lambda.Lambda ("x", Lambda.App
+            (Lambda.Lambda ("y", Lambda.App (Lambda.Var "y",
+            Lambda.Var "x")), Lambda.Var "x")))
 
 ```
 
@@ -197,57 +197,57 @@ on `ppx_deriving`). It provides three annotations:
 Example:
 
 ```ocaml
-#require "cconv.ppx";;
+    #require "cconv.ppx";;
 
-type t = {
-    x : int;
-    y : int;
-    color : string;
-    prev : t option; (* previous position, say *)
-} [@@deriving cconv] ;;
-type t = ...
-val encode : t CConv.Encode.encoder = ...
-val decode : t CConv.Decode.decoder = ...
+    type t = {
+        x : int;
+        y : int;
+        color : string;
+        prev : t option; (* previous position, say *)
+    } [@@deriving cconv] ;;
+    type t = ...
+    val encode : t CConv.Encode.encoder = ...
+    val decode : t CConv.Decode.decoder = ...
 
-type term =
-    | Var of string
-    | App of term * term
-    | Lambda of string * term
-[@@deriving cconv] ;;
-type term = ...
-val encode_term : term CConv.Encode.encoder = ...
-val decode_term : term CConv.Decode.decoder = ...
+    type term =
+        | Var of string
+        | App of term * term
+        | Lambda of string * term
+    [@@deriving cconv] ;;
+    type term = ...
+    val encode_term : term CConv.Encode.encoder = ...
+    val decode_term : term CConv.Decode.decoder = ...
 
-(* encoders/decoders can be used with several backend *)
-#require "cconv.yojson";;
+    (* encoders/decoders can be used with several backend *)
+    #require "cconv.yojson";;
 
-CConvYojson.encode encode_term;;
-- : term -> Yojson.Basic.json = <fun>
+    CConvYojson.encode encode_term;;
+    - : term -> Yojson.Basic.json = <fun>
 
-CConvYojson.decode decode_term;;
-- : Yojson.Basic.json -> [`Ok of term | `Error of string] = <fun>
+    CConvYojson.decode decode_term;;
+    - : Yojson.Basic.json -> [`Ok of term | `Error of string] = <fun>
 
-#require "cconv.bencode";;
-CConvBencode.encode encode_term;;
-- : term -> Bencode.t = <fun>
+    #require "cconv.bencode";;
+    CConvBencode.encode encode_term;;
+    - : term -> Bencode.t = <fun>
 
-CConvBencode.decode decode_term;;
-- : Bencode.t -> [`Ok of term | `Error of string] = <fun>
+    CConvBencode.decode decode_term;;
+    - : Bencode.t -> [`Ok of term | `Error of string] = <fun>
 
-#require "cconv.sexp";;
-CConvSexp.encode encode;;
-- : t -> Sexplib.Sexp.t = <fun>
+    #require "cconv.sexp";;
+    CConvSexp.encode encode;;
+    - : t -> Sexplib.Sexp.t = <fun>
 
-CConvSexp.decode decode;;
-- : Sexplib.Sexp.t -> [`Ok of t | `Error of string] = <fun>
+    CConvSexp.decode decode;;
+    - : Sexplib.Sexp.t -> [`Ok of t | `Error of string] = <fun>
 
-(* on the fly converter *)
+    (* on the fly converter *)
 
-let json = CConvYojson.encode [%encode: int list] [1;2;3];;
-val json : CConvYojson.t = `List [`Int 1; `Int 2; `Int 3]
+    let json = CConvYojson.encode [%encode: int list] [1;2;3];;
+    val json : CConvYojson.t = `List [`Int 1; `Int 2; `Int 3]
 
-let l = CConvYojson.decode [%decode: float list] json;;
-val l : float list CConvYojson.or_error = `Ok [1.; 2.; 3.]
+    let l = CConvYojson.decode [%decode: float list] json;;
+    val l : float list CConvYojson.or_error = `Ok [1.; 2.; 3.]
 
 ```
 
