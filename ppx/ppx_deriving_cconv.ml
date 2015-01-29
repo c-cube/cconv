@@ -45,6 +45,7 @@ let encode_of_typ ~self typ =
     | None -> encode_of_typ_rec typ
     | Some e -> e
   and encode_of_typ_rec typ = match typ with
+  | [%type: unit]            -> [%expr CConv.Encode.unit]
   | [%type: int]             -> [%expr CConv.Encode.int]
   | [%type: float]           -> [%expr CConv.Encode.float]
   | [%type: bool]            -> [%expr CConv.Encode.bool]
@@ -188,6 +189,7 @@ let decode_of_typ ~self typ =
     | None -> decode_of_typ_rec typ
     | Some d -> d
   and decode_of_typ_rec typ = match typ with
+  | [%type: unit]            -> [%expr CConv.Decode.unit]
   | [%type: int]             -> [%expr CConv.Decode.int]
   | [%type: float]           -> [%expr CConv.Decode.float]
   | [%type: bool]            -> [%expr CConv.Decode.bool]
