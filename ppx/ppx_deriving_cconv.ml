@@ -365,7 +365,8 @@ let () =
   let open Ppx_deriving in
   register (create "cconv"
     ~type_decl_str:(fun ~options ~path type_decls ->
-      [AH.Str.value Nonrecursive
+      let recu = if List.length type_decls > 1 then Recursive else Nonrecursive in
+      [AH.Str.value recu
         (List.concat (List.map (str_of_type ~options ~path) type_decls))]
     )
     ~type_decl_sig: (fun ~options ~path type_decls ->
@@ -376,7 +377,8 @@ let () =
   register (create "encode"
     ~core_type:(encode_of_typ ~self:None)
     ~type_decl_str: (fun ~options ~path type_decls ->
-      [AH.Str.value Nonrecursive
+      let recu = if List.length type_decls > 1 then Recursive else Nonrecursive in
+      [AH.Str.value recu
         (List.concat (List.map (encode_of_type ~options ~path) type_decls))]
     )
     ~type_decl_sig: (fun ~options ~path type_decls ->
@@ -385,9 +387,10 @@ let () =
     ()
   );
   register (create "decode"
-    ~core_type:(fun typ -> (decode_of_typ None typ))
+    ~core_type:(fun typ -> (decode_of_typ ~self:None typ))
     ~type_decl_str: (fun ~options ~path type_decls ->
-      [AH.Str.value Nonrecursive
+      let recu = if List.length type_decls > 1 then Recursive else Nonrecursive in
+      [AH.Str.value recu
         (List.concat (List.map (decode_of_type ~options ~path) type_decls))]
     )
     ~type_decl_sig: (fun ~options ~path type_decls ->
