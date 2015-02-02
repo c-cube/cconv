@@ -1,0 +1,14 @@
+#directory "_build/src";;
+#load "cconv.cma";;
+
+#require "bencode";;
+#directory "_build/bencode/";;
+#load "cconv_bencode.cma";;
+
+#require "yojson";;
+#directory "_build/yojson/";;
+#load "cconv_yojson.cma";;
+
+#require "sexplib";;
+#directory "_build/sexp/";;
+#load "cconv_sexp.cma";;
