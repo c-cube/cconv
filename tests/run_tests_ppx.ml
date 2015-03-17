@@ -2,14 +2,18 @@
 open OUnit
 
 module type S = sig
-  type t [@@deriving cconv,show]
+  type t [@@deriving cconv]
+  val show : t -> string
   val name : string
   val examples : t list
 end
 
 module type TEST = sig
-  val suite : OUnit.test
+  val suite : OUnit.test (* automatically registered *)
 end
+
+let suites = ref []
+let add_suite x = suites := x :: !suites
 
 module Make(X : S) : TEST = struct
   let bij_json ex () =
@@ -25,7 +29,7 @@ module Make(X : S) : TEST = struct
     | `Ok ex' ->
       assert_equal ~printer:X.show ex' ex
     | `Error msg -> assert_failure msg
-  
+
   let suite_of_example ex =
     [ "bij_json" >:: bij_json ex
     ; "bij_bencode" >:: bij_bencode ex
@@ -33,6 +37,8 @@ module Make(X : S) : TEST = struct
 
   let suite =
     X.name >::: (List.map suite_of_example X.examples |> List.flatten)
+
+  let () = add_suite suite
 end
 
 module M1 = Make(struct
@@ -97,11 +103,28 @@ module M3 = struct
     OUnit.assert_equal ~printer:(Yojson.Basic.pretty_to_string ~std:true)
       (`Assoc ["i", `Assoc ["bint", `Int 1]; "j", `Int 42]) json
 
-  let suite = "" >:::
+  let suite2 = "" >:::
     [ "@encoder" >:: test_encode_yojson
-    ; suite
     ]
+
+  let () = add_suite suite2
 end
+
+module M4 = Make(struct
+  type t = int * string [@@deriving cconv, show]
+  let name = "pair"
+  let examples = [1, "foo";  2, "bar"; max_int, ""]
+end)
+
+module M5 = Make(struct
+  type t = bool * (int * float * int32 * unit) * string list array
+             [@@deriving cconv]
+  let show _ = "<too complicated>" (* TODO: wait for deriving show to work on unit *)
+  let name = "bifi32usla"
+  let examples = [
+    true, (1, 3.14, 42l, ()), [| ["a"]; ["hello"; "world"] |]
+  ]
+end)
 
 type record_ignore = {
   x : int;
@@ -115,14 +138,9 @@ let test_record_ignore () =
     (`Assoc ["x", `Int 1]) json;
   ()
 
-let suite =
-  "cconv" >:::
-    [ M1.suite
-    ; M2.suite
-    ; M3.suite
-    ; "record_ignore" >:: test_record_ignore
-    ]
+let () = add_suite ("record_ignore" >:: test_record_ignore)
 
 let _ =
+  let suite = "cconv" >::: List.rev !suites in
   OUnit.run_test_tt_main suite
 
