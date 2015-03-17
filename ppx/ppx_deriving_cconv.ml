@@ -76,18 +76,20 @@ let encode_of_typ ~self typ =
       end
   | { ptyp_desc = Ptyp_tuple typs } ->
       (* encode tuple, by destructuring it *)
-      [%expr CConv.Encode.tuple
-        (fun [%p AC.ptuple (List.mapi (fun i _ -> AC.pvar (argn i)) typs)] ->
-          [%e fold_right_i
-            (fun i typ acc ->
-              [%expr
-                [%e encode_of_typ typ].CConv.Encode.emit into
-                [%e AC.evar (argn i)] ::
-                [%e acc]
-              ]
-            ) typs [%expr []]
-          ]
-        )
+      [%expr
+        CConv.Encode.tuple
+          {CConv.Encode.tuple_emit=
+             fun into [%p AC.ptuple (List.mapi (fun i _ -> AC.pvar (argn i)) typs)] ->
+               [%e fold_right_i
+                     (fun i typ acc ->
+                        [%expr
+                          [%e encode_of_typ typ].CConv.Encode.emit into
+                            [%e AC.evar (argn i)] ::
+                          [%e acc]
+                        ]
+                     ) typs [%expr []]
+               ]
+          }
       ]
   | { ptyp_desc = Ptyp_variant (fields, _, _); ptyp_loc } ->
       raise_errorf ~loc:ptyp_loc "%s cannot be derived for poly variants" deriver
