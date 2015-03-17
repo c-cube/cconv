@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 553408dd92ea5c03ffa18019870bf42b)
-version = "0.3"
+# DO NOT EDIT (digest: eacacf01957110cb02a398b5f2d42899)
+version = "0.3.1"
 description = "Combinators for Conversion"
 archive(byte) = "cconv.cma"
 archive(byte, plugin) = "cconv.cma"
@@ -8,7 +8,7 @@ archive(native) = "cconv.cmxa"
 archive(native, plugin) = "cconv.cmxs"
 exists_if = "cconv.cma"
 package "yojson" (
- version = "0.3"
+ version = "0.3.1"
  description = "Combinators for Conversion"
  requires = "cconv yojson"
  archive(byte) = "cconv_yojson.cma"
@@ -19,7 +19,7 @@ package "yojson" (
 )
 
 package "sexp" (
- version = "0.3"
+ version = "0.3.1"
  description = "Combinators for Conversion"
  requires = "cconv sexplib"
  archive(byte) = "cconv_sexp.cma"
@@ -30,7 +30,7 @@ package "sexp" (
 )
 
 package "psexp" (
- version = "0.3"
+ version = "0.3.1"
  description = "Combinators for Conversion"
  requires = "cconv"
  archive(byte) = "cconv_psexp.cma"
@@ -42,7 +42,7 @@ package "psexp" (
 
 
 package "bencode" (
- version = "0.3"
+ version = "0.3.1"
  description = "Combinators for Conversion"
  requires = "cconv bencode"
  archive(byte) = "cconv_bencode.cma"
