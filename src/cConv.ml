@@ -305,6 +305,9 @@ module Decode = struct
   let unit = {dec={
     failing with
     accept_unit=(fun _ _ ->());
+    accept_int=(fun _ i -> if i=0 then () else fail_ "expected unit");
+    accept_int32=(fun _ i -> if i=0l then () else fail_ "expected unit");
+    accept_int64=(fun _ i -> if i=0L then () else fail_ "expected unit");
     accept_string=(fun _ s -> match s with
       | "()" -> ()
       | s -> fail_ s
