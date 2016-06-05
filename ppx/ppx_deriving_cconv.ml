@@ -62,8 +62,8 @@ let encode_of_typ ~self typ =
   | [%type: [%t? typ] option] ->
       [%expr CConv.Encode.(option [%e encode_of_typ typ])]
   | { ptyp_desc = Ptyp_constr ({ txt = lid }, args) } ->
-      begin match self with
-      | Some (name, used) when Longident.last lid=name ->
+      begin match self, lid with
+      | Some (name, used), Lident liname when liname=name ->
           (* typ is actually a recursive reference to the type
             being defined. Use a "self" variables that will be bound
             with [CConv.Encode.record_fix] or [CConv.Encode.sum_fix] *)
@@ -208,8 +208,8 @@ let decode_of_typ ~self typ =
   | [%type: [%t? typ] option] ->
       [%expr CConv.Decode.(option [%e decode_of_typ typ])]
   | { ptyp_desc = Ptyp_constr ({ txt = lid }, args) } ->
-      begin match self with
-      | Some (name, used) when Longident.last lid=name ->
+      begin match self, lid with
+      | Some (name, used), Lident liname when liname=name ->
           (* typ is actually a recursive reference to the type
             being defined. Use a "self" variables that will be bound
             with [CConv.Decode.record_fix] or [CConv.Decode.sum_fix] *)
