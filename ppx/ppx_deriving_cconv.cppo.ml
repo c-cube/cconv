@@ -37,6 +37,30 @@ let fold_right_i f l acc =
   in
   fold' f acc 0 l
 
+#if OCAML_VERSION < (4, 03, 0)
+
+let extract_pcd_args_tuple_values ~loc pcd_args = pcd_args
+let contains_record_variant constrs = false
+
+#else
+
+let extract_pcd_args_tuple_values ~loc pcd_args =
+  match pcd_args with
+  | Pcstr_tuple l -> l
+  | Pcstr_record _ ->
+    (* When calling this method, the constructors have been checked
+       already during pattern matching, but handle it just in case *)
+    raise_errorf ~loc "%s cannot be derived for record variants" deriver
+
+let contains_record_variant constrs =
+  let is_record_variant constr =
+    match constr.pcd_args with
+    | Pcstr_record _ -> true
+    | Pcstr_tuple _ -> false in
+  List.exists is_record_variant constrs
+
+#endif
+
 (* generate a [typ CConv.Encode.encoder] for the given [typ].
   @param self an option contains the type being defined, and a reference
     indicating whether a self-reference was used *)
@@ -101,21 +125,6 @@ let encode_of_typ ~self typ =
                    deriver (Ppx_deriving.string_of_core_type typ)
   in
   encode_of_typ typ
-
-let extract_pcd_args_tuple_values ~loc pcd_args =
-  match pcd_args with
-  | Pcstr_tuple l -> l
-  | Pcstr_record _ ->
-    (* When calling this method, the constructors have been checked
-       already during pattern matching, but handle it just in case *)
-    raise_errorf ~loc "%s cannot be derived for record variants" deriver
-
-let contains_record_variant constrs =
-  let is_record_variant constr =
-    match constr.pcd_args with
-    | Pcstr_record _ -> true
-    | Pcstr_tuple _ -> false in
-  List.exists is_record_variant constrs
 
 (* make an encoder from a type declaration *)
 let encode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
