@@ -37,6 +37,30 @@ let fold_right_i f l acc =
   in
   fold' f acc 0 l
 
+#if OCAML_VERSION < (4, 03, 0)
+
+let extract_pcd_args_tuple_values ~loc pcd_args = pcd_args
+let contains_record_variant constrs = false
+
+#else
+
+let extract_pcd_args_tuple_values ~loc pcd_args =
+  match pcd_args with
+  | Pcstr_tuple l -> l
+  | Pcstr_record _ ->
+    (* When calling this method, the constructors have been checked
+       already during pattern matching, but handle it just in case *)
+    raise_errorf ~loc "%s cannot be derived for record variants" deriver
+
+let contains_record_variant constrs =
+  let is_record_variant constr =
+    match constr.pcd_args with
+    | Pcstr_record _ -> true
+    | Pcstr_tuple _ -> false in
+  List.exists is_record_variant constrs
+
+#endif
+
 (* generate a [typ CConv.Encode.encoder] for the given [typ].
   @param self an option contains the type being defined, and a reference
     indicating whether a self-reference was used *)
@@ -107,12 +131,15 @@ let encode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
   let encoder =
     match type_decl.ptype_kind, type_decl.ptype_manifest with
     | Ptype_abstract, Some manifest -> encode_of_typ ~self:None manifest
+    | Ptype_variant constrs, _ when contains_record_variant constrs ->
+      raise_errorf ~loc "%s cannot be derived for record variants" deriver
     | Ptype_variant constrs, _ ->
         let self_used = ref false in
         let self = Some (type_decl.ptype_name.txt, self_used) in
         (* pattern matching *)
         let cases = List.map
           (fun { pcd_name = { txt = name' }; pcd_args; pcd_attributes } ->
+            let pcd_args = extract_pcd_args_tuple_values ~loc pcd_args in
             (* first, encode arguments *)
             let args = fold_right_i
               (fun i typ acc ->
@@ -257,12 +284,15 @@ let decode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
   let decoder =
     match type_decl.ptype_kind, type_decl.ptype_manifest with
     | Ptype_abstract, Some manifest -> decode_of_typ ~self:None manifest
+    | Ptype_variant constrs, _ when contains_record_variant constrs ->
+      raise_errorf ~loc "%s cannot be derived for record variants" deriver
     | Ptype_variant constrs, _ ->
         let self_used = ref false in
         let self = Some (type_decl.ptype_name.txt, self_used) in
         (* generate pattern matching cases *)
         let cases = List.map
           (fun { pcd_name = { txt = name' }; pcd_args; pcd_attributes } ->
+            let pcd_args = extract_pcd_args_tuple_values ~loc pcd_args in
             AH.Exp.case
               [%pat?
                 ([%p AC.pstr name'],

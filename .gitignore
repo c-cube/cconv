@@ -9,3 +9,4 @@ TAGS
 setup.log
 setup.data
 _qtest
+ppx/ppx_deriving_cconv.ml

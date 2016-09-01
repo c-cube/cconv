@@ -21,6 +21,7 @@ remove: [
     ["ocamlfind" "remove" "cconv"]
 ]
 depends: [
+    "cppo"      {build}
     "ocamlfind" {build}
 ]
 depopts: [
