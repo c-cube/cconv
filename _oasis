@@ -111,7 +111,8 @@ Executable "run_tests_ppx"
   MainIs:           run_tests_ppx.ml
   CompiledObject:   native
   Build$:           flag(tests) && flag(ppx) && flag(yojson) && flag(bencode)
-  BuildDepends:     yojson, bencode, ppx_deriving.std, oUnit # others in _tags
+  BuildDepends:     cconv, cconv.yojson, cconv.ppx, cconv.bencode,
+                    yojson, bencode, ppx_deriving.std, oUnit # others in _tags
   Install:          false
 
 Test all
