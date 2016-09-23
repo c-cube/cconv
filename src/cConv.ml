@@ -28,6 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 exception ConversionFailure of string
 
+exception IntermediateFailure of (string list * string)
+
 type 'a sequence = ('a -> unit) -> unit
 
 (* error-raising function *)
@@ -35,8 +37,12 @@ let report_error msg =
   let b = Buffer.create 15 in
   Printf.bprintf b "conversion error: ";
   Printf.kbprintf
-    (fun b -> raise (ConversionFailure (Buffer.contents b)))
+    (fun b -> raise (IntermediateFailure ([], (Buffer.contents b))))
     b msg
+
+let formatted_error path msg =
+  let path' = (String.concat " / " path) in
+  raise (ConversionFailure (Printf.sprintf "%s at %s" msg path'))
 
 (* function to look up the given name in an association list *)
 let _get_field l name =
@@ -215,7 +221,7 @@ module Decode = struct
   let apply_inner src dec x = src.emit dec x
   let apply src dec x = src.emit dec.dec x
 
-  let fail_ obtained = report_error "unexpected  %s" obtained
+  let fail_ obtained = report_error "unexpected %s" obtained
 
   let failing =
     { accept_unit=(fun _ _ -> fail_ "unit")
@@ -335,10 +341,18 @@ module Decode = struct
     );
   }}
 
-  let list dec_x = {dec={
+  let list dec_x =
+    let emitter src l =
+      let wrapper i v =
+        try src.emit dec_x.dec v
+        with IntermediateFailure (path, msg) ->
+          raise (IntermediateFailure ((string_of_int i)::path, msg))
+      in
+      List.mapi wrapper l in
+    {dec={
     failing with
-    accept_list=(fun src l -> List.map (src.emit dec_x.dec) l);
-    accept_tuple=(fun src l -> List.map (src.emit dec_x.dec) l);
+    accept_list=emitter;
+    accept_tuple=emitter;
     accept_option=(fun src o -> match o with
       | None -> []
       | Some x -> [src.emit dec_x.dec x]
@@ -413,10 +427,14 @@ module Decode = struct
     accept_tuple=(fun src l -> arg3 dec_x dec_y dec_z src l);
   }}
 
-  let rec record_get name dec src l = match l with
+  let record_get name dec src l =
+    let rec getter = function
     | [] -> report_error "could not find record field %s" name
     | (name', x) :: _ when name=name' -> src.emit dec.dec x
-    | _ :: tail -> record_get name dec src tail
+    | _ :: tail -> getter tail in
+    try getter l
+    with IntermediateFailure (path, msg) ->
+      raise (IntermediateFailure (name::path, msg))
 
   let rec record_get_opt name dec src l = match l with
     | [] -> None
@@ -504,7 +522,10 @@ let encode enc target x = enc.Encode.emit target x
 
 let to_string enc x = enc.Encode.emit Encode.string_target x
 
-let decode_exn src dec x = src.Decode.emit dec.Decode.dec x
+let decode_exn src dec x =
+  try src.Decode.emit dec.Decode.dec x
+  with IntermediateFailure (path, msg) ->
+    formatted_error path msg
 
 type 'a or_error = [ `Ok of 'a | `Error of string ]
 

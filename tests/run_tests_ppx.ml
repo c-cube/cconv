@@ -138,9 +138,28 @@ let test_record_ignore () =
     (`Assoc ["x", `Int 1]) json;
   ()
 
-let () = add_suite ("record_ignore" >:: test_record_ignore)
+module Nested = struct
+  type r = {
+    z : int;
+    ys : string list
+  } [@@deriving show, cconv]
+
+  type t = {
+    r : r
+  } [@@deriving show, cconv]
+end
+
+let test_exception () =
+  let json = (`Assoc ["r", `Assoc ["z", `Int 10; "ys", `List [`String "hello"; `List []]]]) in
+  try CConvYojson.decode_exn Nested.decode json |> ignore
+  with CConv.ConversionFailure msg ->
+    let expect = "conversion error: unexpected list at r / ys / 1" in
+    OUnit.assert_equal ~printer:(fun x -> x) expect msg
+
+let () =
+  add_suite ("record_ignore" >:: test_record_ignore);
+  add_suite ("exception" >:: test_exception)
 
 let _ =
   let suite = "cconv" >::: List.rev !suites in
   OUnit.run_test_tt_main suite
-
