@@ -524,8 +524,9 @@ let to_string enc x = enc.Encode.emit Encode.string_target x
 
 let decode_exn src dec x =
   try src.Decode.emit dec.Decode.dec x
-  with IntermediateFailure (path, msg) ->
-    formatted_error path msg
+  with
+  | IntermediateFailure ([], msg) -> raise (ConversionFailure msg)
+  | IntermediateFailure (path, msg) -> formatted_error path msg
 
 type 'a or_error = [ `Ok of 'a | `Error of string ]
 

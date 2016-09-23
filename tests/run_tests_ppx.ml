@@ -150,11 +150,14 @@ module Nested = struct
 end
 
 let test_exception () =
-  let json = (`Assoc ["r", `Assoc ["z", `Int 10; "ys", `List [`String "hello"; `List []]]]) in
-  try CConvYojson.decode_exn Nested.decode json |> ignore
+  let check_exception json expected =
+      try CConvYojson.decode_exn Nested.decode json |> ignore
   with CConv.ConversionFailure msg ->
-    let expect = "conversion error: unexpected list at r / ys / 1" in
-    OUnit.assert_equal ~printer:(fun x -> x) expect msg
+    OUnit.assert_equal ~printer:(fun x -> x) expected msg in
+  check_exception
+    (`Assoc ["r", `Assoc ["z", `Int 10; "ys", `List [`String "hello"; `List []]]])
+    "conversion error: unexpected list at r / ys / 1";
+  check_exception (`Int 1) "conversion error: unexpected int"
 
 let () =
   add_suite ("record_ignore" >:: test_record_ignore);
