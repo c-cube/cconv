@@ -171,7 +171,7 @@ let encode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
             is named "r". *)
         let destruct = fold_right_i
           (fun i field tail ->
-            if attr_ignore field.pld_type.ptyp_attributes
+            if attr_ignore field.pld_attributes
             then tail (* do not encode *)
             else
               let encoder = encode_of_typ ~self field.pld_type in

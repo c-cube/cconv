@@ -77,9 +77,9 @@ module M3 = struct
     let unbox_int {bint} = bint
 
     type t = {
-      i : int
+      i : (int
         [@encoder CConv.Encode.(map box_int encode_boxed_int)]
-        [@decoder CConv.Decode.(map unbox_int decode_boxed_int)];
+        [@decoder CConv.Decode.(map unbox_int decode_boxed_int)]);
       j : int;
     }
     [@@deriving show, cconv]
