@@ -531,5 +531,5 @@ let decode_exn src dec x =
 type 'a or_error = [ `Ok of 'a | `Error of string ]
 
 let decode src dec x =
-  try `Ok (src.Decode.emit dec.Decode.dec x)
+  try `Ok (decode_exn src dec x)
   with ConversionFailure msg -> `Error msg
