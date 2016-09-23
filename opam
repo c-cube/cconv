@@ -1,3 +1,5 @@
+name: "cconv"
+version: "0.4"
 opam-version: "1.2"
 author: "Simon Cruanes"
 maintainer: "simon.cruanes.2007@m4x.org"
