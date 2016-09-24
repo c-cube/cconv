@@ -126,6 +126,23 @@ module M5 = Make(struct
   ]
 end)
 
+module M6 = Make(struct
+  type t = { foo : string [@key "bar"]} [@@deriving cconv, show]
+  let name = "key param"
+  let t1 = { foo = "hi"}
+  let examples = [t1]
+
+  let test_encode_yojson () =
+    let json = CConvYojson.encode encode t1 in
+    OUnit.assert_equal ~printer:(Yojson.Basic.pretty_to_string ~std:true)
+      (`Assoc ["bar", `String "hi"]) json
+
+  let suite2 = "" >:::
+               [ "@key" >:: test_encode_yojson]
+
+  let () = add_suite suite2
+end)
+
 type record_ignore = {
   x : int;
   y : int [@ignore];

@@ -27,6 +27,14 @@ let attr_ignore attrs =
   Ppx_deriving.attr ~deriver "ignore" attrs |>
   Ppx_deriving.Arg.(get_flag ~deriver )
 
+let attr_string name default attrs =
+  match Ppx_deriving.attr ~deriver name attrs |>
+        Ppx_deriving.Arg.(get_attr ~deriver string) with
+  | Some x -> x
+  | None   -> default
+
+let attr_key  = attr_string "key"
+
 (* fold right, with index of element *)
 let fold_right_i f l acc =
   let rec fold' f acc i l = match l with
@@ -175,8 +183,9 @@ let encode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
             then tail (* do not encode *)
             else
               let encoder = encode_of_typ ~self field.pld_type in
+              let field_name = attr_key field.pld_name.txt field.pld_attributes in
               [%expr
-                ( [%e AC.str field.pld_name.txt],
+                ( [%e AC.str field_name],
                   [%e encoder].CConv.Encode.emit into
                     [%e AH.Exp.field [%expr r] (AC.lid field.pld_name.txt)]
                 ) :: [%e tail]
@@ -335,12 +344,12 @@ let decode_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
           (fun i field tail ->
             let decoder = match attr_decoder field.pld_attributes with
               | None -> decode_of_typ ~self field.pld_type
-              | Some d -> d
-            in
+              | Some d -> d in
+            let field_name = attr_key field.pld_name.txt field.pld_attributes in
             [%expr
               let [%p AC.pvar field.pld_name.txt] =
                 CConv.Decode.record_get
-                [%e AC.str field.pld_name.txt]
+                [%e AC.str field_name]
                 [%e decoder]
                 src
                 args in
