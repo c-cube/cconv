@@ -143,6 +143,22 @@ module M6 = Make(struct
   let () = add_suite suite2
 end)
 
+module M7 = Make(struct
+  type t = { foo : string [@default "bar"]} [@@deriving cconv, show]
+  let name = "default param"
+  let t1 = { foo = "bar"}
+  let examples = [t1]
+
+  let test_decode_yojson () =
+    let v = CConvYojson.decode_exn decode (`Assoc []) in
+    OUnit.assert_equal ~printer:show {foo = "bar"} v
+
+  let suite2 = "" >:::
+               [ "@default" >:: test_decode_yojson]
+
+  let () = add_suite suite2
+end)
+
 type record_ignore = {
   x : int;
   y : int [@ignore];
