@@ -255,6 +255,40 @@ Example:
 
 Attributes can modify the behavior of `ppx_deriving_cconv`. They are as follows:
 
-- `[@encoder e]` to specify an encoder for a record field of variant argument
-- `[@decoder d]` to specify a decoder for a record field or variant argument
+- `[@encoder e]` to specify an encoder for a record field of variant argument. type attribute
+- `[@decoder d]` to specify a decoder for a record field or variant argument. type attribute
+``` ocaml
+type boxed_int = {
+  bint : int;
+} [@@deriving cconv]
+
+let box_int bint = {bint}
+let unbox_int {bint} = bint
+
+type t = {
+  i : (int
+         [@encoder CConv.Encode.(map box_int encode_boxed_int)]
+         [@decoder CConv.Decode.(map unbox_int decode_boxed_int)]);
+  j : int;
+} [@@deriving cconv]
+
+# CConvYojson.of_string_exn decode "{\"i\": {\"bint\": 100}, \"j\": 10}";;
+{i = 100; j = 10}
+```
+
 - `[@cconv.ignore]` to ignore the field for encoding (decoding will still require it)
+- `[@default expr]` to specify default value for a record field
+``` ocaml
+type pagination = {
+  pages   : int;
+  current : int [@default 0];
+} [@@deriving cconv]
+```
+
+- `[@key name]` to specify a name of record field in encoder / decoder
+``` ocaml
+type geo = {
+  lat : float [@key "Latitude"];
+  lon : float [@key "Longitude"];
+} [@@deriving cconv]
+```

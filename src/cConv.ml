@@ -427,19 +427,19 @@ module Decode = struct
     accept_tuple=(fun src l -> arg3 dec_x dec_y dec_z src l);
   }}
 
-  let record_get name dec src l =
+  let record_get_opt name dec src l =
     let rec getter = function
-    | [] -> report_error "could not find record field %s" name
-    | (name', x) :: _ when name=name' -> src.emit dec.dec x
+    [] -> None
+    | (name', x) :: _ when name=name' -> Some (src.emit dec.dec x)
     | _ :: tail -> getter tail in
     try getter l
     with IntermediateFailure (path, msg) ->
       raise (IntermediateFailure (name::path, msg))
 
-  let rec record_get_opt name dec src l = match l with
-    | [] -> None
-    | (name', x) :: _ when name=name' -> Some (src.emit dec.dec x)
-    | _ :: tail -> record_get_opt name dec src tail
+  let record_get name dec src l =
+    match record_get_opt name dec src l with
+    | Some v -> v
+    | None -> report_error "could not find record field %s" name
 
   type 'into record_decoder = {
     record_accept : 'src. 'src source -> (string * 'src) list -> 'into;
