@@ -36,7 +36,7 @@ tags: ["conversion" "gadt" "serialization"]
 homepage: "https://github.com/c-cube/cconv/"
 doc: "http://cedeela.fr/~simon/software/cconv/"
 available: [
-    ocaml-version >= "3.12"
+    ocaml-version >= "4.01.0"
 ]
 conflicts: [
   "ppx_deriving" { < "2.0" }
