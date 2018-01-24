@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: b0fc9c50724be56c06814d2d920c12fa)
+# DO NOT EDIT (digest: c2b0beb7d8d1d8e74c54b0d7bd1ec93a)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,6 +18,8 @@ true: annot, bin_annot
 "src/cconv.cmxs": use_cconv
 # Library ppx_deriving_cconv
 "ppx/ppx_deriving_cconv.cmxs": use_ppx_deriving_cconv
+<ppx/ppx_deriving_cconv.{cma,cmxa}>: oasis_library_ppx_deriving_cconv_native
+<ppx/*.ml{,i,y}>: oasis_library_ppx_deriving_cconv_native
 <ppx/*.ml{,i,y}>: package(ppx_deriving.api)
 <ppx/*.ml{,i,y}>: package(ppx_tools.metaquot)
 # Library cconv_sexp
@@ -74,3 +76,4 @@ true: annot, bin_annot
 true: cppo_V_OCAML
 <src/**/*.ml>: warn_A, warn(-4), warn(-44)
 <tests/*>: use_ppx_cconv
+"ppx/ppx_deriving_cconv.cmxs": -use_ppx_deriving_cconv
