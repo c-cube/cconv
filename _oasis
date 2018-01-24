@@ -49,6 +49,7 @@ Library "ppx_deriving_cconv"
   BuildDepends:     ppx_tools.metaquot, ppx_deriving.api
   FindlibParent:    cconv
   FindlibName:      ppx
+  NativeOpt:        -linkall
   Build$:           flag(ppx)
   Install$:         flag(ppx)
   XMETAEnable:      false
