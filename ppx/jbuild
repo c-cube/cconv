@@ -4,7 +4,7 @@
  ((name ppx_deriving_cconv)
   (public_name cconv.ppx)
   (synopsis "[@@deriving cconv]")
-  (kind ppx_rewriter)
+  (kind ppx_deriver)
   (libraries (ppx_deriving.api))
   (optional)
   (preprocess (action (run sh -c "${bin:ocamlfind} ppx_tools/rewriter -ppx `ocamlfind query ppx_tools.metaquot`/ppx_metaquot ${<}")))))
