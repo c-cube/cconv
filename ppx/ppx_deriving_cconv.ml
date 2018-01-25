@@ -49,13 +49,6 @@ let fold_right_i f l acc =
   in
   fold' f acc 0 l
 
-#if OCAML_VERSION < (4, 03, 0)
-
-let extract_pcd_args_tuple_values ~loc pcd_args = pcd_args
-let contains_record_variant constrs = false
-
-#else
-
 let extract_pcd_args_tuple_values ~loc pcd_args =
   match pcd_args with
   | Pcstr_tuple l -> l
@@ -70,8 +63,6 @@ let contains_record_variant constrs =
     | Pcstr_record _ -> true
     | Pcstr_tuple _ -> false in
   List.exists is_record_variant constrs
-
-#endif
 
 (* generate a [typ CConv.Encode.encoder] for the given [typ].
   @param self an option contains the type being defined, and a reference

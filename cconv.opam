@@ -12,7 +12,6 @@ install: [
 build-doc: [ make "doc" ]
 build-test: [ make "test" ]
 depends: [
-    "cppo"      {build}
     "ocamlfind" {build}
 ]
 depopts: [
@@ -21,6 +20,7 @@ depopts: [
     "yojson"
     "ppx_deriving"
     "ppx_driver"
+    "ppx_tools_versioned" {build}
 ]
 tags: ["conversion" "gadt" "serialization"]
 homepage: "https://github.com/c-cube/cconv/"

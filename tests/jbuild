@@ -4,7 +4,7 @@
  ((name run_tests_ppx)
   (libraries (cconv cconv.yojson cconv.bencode
               yojson bencode oUnit))
-  (preprocess (pps (ppx_deriving.std ppx_deriving_cconv ppx_driver.runner)))))
+  (preprocess (pps (ppx_deriving.std ppx_deriving_cconv)))))
 
 (alias
  ((name    runtest)
