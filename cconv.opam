@@ -13,6 +13,7 @@ build-doc: [ make "doc" ]
 build-test: [ make "test" ]
 depends: [
     "ocamlfind" {build}
+    "jbuilder"  {build}
 ]
 depopts: [
     "bencode"
