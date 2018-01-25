@@ -7,4 +7,9 @@
   (kind ppx_rewriter)
   (libraries (ppx_deriving.api))
   (optional)
-  (preprocess (pps (ppx_tools_versioned.metaquot_406)))))
+  (preprocess (action (run sh -c "${bin:ocamlfind} ppx_tools/rewriter -ppx `ocamlfind query ppx_tools.metaquot`/ppx_metaquot ${<}")))))
+
+(rule
+ ((targets (ppx_deriving_cconv.ml))
+  (deps    (ppx_deriving_cconv.cppo.ml))
+  (action  (run ${bin:cppo} -V OCAML:${ocaml_version} ${<} -o ${@}))))

@@ -20,7 +20,8 @@ depopts: [
     "yojson"
     "ppx_deriving"
     "ppx_driver"
-    "ppx_tools_versioned" {build}
+    "cppo"      {build}
+    "ppx_tools" {build}
 ]
 tags: ["conversion" "gadt" "serialization"]
 homepage: "https://github.com/c-cube/cconv/"
