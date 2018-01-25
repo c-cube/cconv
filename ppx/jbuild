@@ -1,0 +1,15 @@
+(jbuild_version 1)
+
+(library
+ ((name ppx_deriving_cconv)
+  (public_name cconv.ppx)
+  (synopsis "[@@deriving cconv]")
+  (kind ppx_deriver)
+  (libraries (cconv ppx_deriving.api))
+  (optional)
+  (preprocess (pps (ppx_tools_versioned.metaquot_406 ppx_driver.runner)))))
+
+(rule
+ ((targets (ppx_deriving_cconv.ml))
+  (deps    (ppx_deriving_cconv.cppo.ml))
+  (action  (run ${bin:cppo} -V OCAML:${ocaml_version} ${<} -o ${@}))))

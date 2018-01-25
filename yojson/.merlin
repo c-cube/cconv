@@ -1,4 +1,0 @@
-S .
-B ../_build/yojson/
-REC
-PKG yojson

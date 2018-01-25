@@ -1,4 +1,0 @@
-REC
-PKG benchmark
-PKG cconv.yojson
-PKG ppx_deriving_yojson

@@ -4,24 +4,13 @@ opam-version: "1.2"
 author: "Simon Cruanes"
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
-    ["./configure"
-      "--%{yojson:enable}%-yojson"
-      "--%{bencode:enable}%-bencode"
-      "--%{sexplib:enable}%-sexp"
-      "--%{ppx_deriving:enable}%-ppx"
-      "--disable-tests"
-      "--%{doc:enable}%-docs"
-    ]
-    [make "build"]
+    ["jbuilder" "build" "-p" name "-j" jobs]
 ]
 install: [
     [make "install"]
 ]
 build-doc: [ make "doc" ]
 build-test: [ make "test" ]
-remove: [
-    ["ocamlfind" "remove" "cconv"]
-]
 depends: [
     "cppo"      {build}
     "ocamlfind" {build}
@@ -31,6 +20,7 @@ depopts: [
     "sexplib"
     "yojson"
     "ppx_deriving"
+    "ppx_driver"
 ]
 tags: ["conversion" "gadt" "serialization"]
 homepage: "https://github.com/c-cube/cconv/"

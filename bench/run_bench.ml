@@ -1,5 +1,6 @@
 
 (* benchmark encoding *)
+open Result
 
 module Point = struct
   type t = {
@@ -117,13 +118,21 @@ let bench_decoding dec x () =
     | `Ok _ -> ()
   done
 
+let bench_decoding_result dec x () =
+    for _ = 1 to 10 do
+      match dec x with
+      | Error msg -> failwith msg
+      | Ok _ -> ()
+    done
+
+
 let bench_decoding_point () =
   print_endline "\nbenchmark points";
   let j1 = CConvYojson.encode Point.encode Point.p' in
   let j2 = Point.to_yojson Point.p' in
   Benchmark.throughputN 3
     [ "cconv", bench_decoding (CConvYojson.decode Point.decode) j1, ()
-    ; "deriving_yojson", bench_decoding Point.of_yojson j2, ()
+    ; "deriving_yojson", bench_decoding_result Point.of_yojson j2, ()
     ]
 
 let bench_decoding_term () =
@@ -132,7 +141,7 @@ let bench_decoding_term () =
   let j2 = Lambda.to_yojson Lambda.t1 in
   Benchmark.throughputN 3
     [ "cconv", bench_decoding (CConvYojson.decode Lambda.decode) j1, ()
-    ; "deriving_yojson", bench_decoding Lambda.of_yojson j2, ()
+    ; "deriving_yojson", bench_decoding_result Lambda.of_yojson j2, ()
     ]
 
 

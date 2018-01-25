@@ -1,5 +1,0 @@
-S .
-B ../_build/sexp/
-REC
-PKG sexplib
-

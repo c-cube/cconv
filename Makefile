@@ -1,46 +1,27 @@
-# OASIS_START
-# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
+INSTALL_ARGS := $(if $(PREFIX),--prefix $(PREFIX),)
 
-SETUP = ocaml setup.ml
+# Default rule
+default:
+	jbuilder build @install
 
-build: setup.data
-	$(SETUP) -build $(BUILDFLAGS)
+install:
+	jbuilder install $(INSTALL_ARGS)
 
-doc: setup.data build
-	$(SETUP) -doc $(DOCFLAGS)
+uninstall:
+	jbuilder uninstall $(INSTALL_ARGS)
 
-test: setup.data build
-	$(SETUP) -test $(TESTFLAGS)
+reinstall: uninstall reinstall
 
-all:
-	$(SETUP) -all $(ALLFLAGS)
+doc:
+	jbuilder build @doc
 
-install: setup.data
-	$(SETUP) -install $(INSTALLFLAGS)
+test:
+	jbuilder runtest --no-buffer
 
-uninstall: setup.data
-	$(SETUP) -uninstall $(UNINSTALLFLAGS)
-
-reinstall: setup.data
-	$(SETUP) -reinstall $(REINSTALLFLAGS)
+bench:
+	jbuilder build @runbench --no-buffer
 
 clean:
-	$(SETUP) -clean $(CLEANFLAGS)
+	jbuilder clean
 
-distclean:
-	$(SETUP) -distclean $(DISTCLEANFLAGS)
-
-setup.data:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-configure:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-.PHONY: build doc test all install uninstall reinstall clean distclean configure
-
-# OASIS_STOP
-
-push_doc: all doc
-	scp -r doc.docdir/* cedeela.fr:~/simon/root/software/cconv/
-
-.PHONY: benchs tests
+.PHONY: default install uninstall reinstall doc test bench clean
