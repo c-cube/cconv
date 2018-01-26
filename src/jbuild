@@ -1,0 +1,6 @@
+(jbuild_version 1)
+
+(library
+ ((name cConv)
+  (public_name cconv)
+  (synopsis "Combinators for Conversion")))
