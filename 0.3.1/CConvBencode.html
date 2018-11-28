@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="CConv.html">
+<link rel="next" href="CConvSexp.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="CConv" rel="Chapter" href="CConv.html">
+<link title="CConvBencode" rel="Chapter" href="CConvBencode.html">
+<link title="CConvSexp" rel="Chapter" href="CConvSexp.html">
+<link title="CConvYojson" rel="Chapter" href="CConvYojson.html">
+<link title="CConvPSexp" rel="Chapter" href="CConvPSexp.html"><title>CConvBencode</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="CConv.html" title="CConv">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="CConvSexp.html" title="CConvSexp">Next</a>
+</div>
+<h1>Module <a href="type_CConvBencode.html">CConvBencode</a></h1>
+
+<pre><span id="MODULECConvBencode"><span class="keyword">module</span> CConvBencode</span>: <code class="code">sig</code> <a href="CConvBencode.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<h2 id="1_InterfacetoBencode">Interface to Bencode</h2></div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEor_error"><span class="keyword">type</span> <code class="type">'a</code> or_error</span> = <code class="type">[ `Error of string | `Ok of 'a ]</code> </pre>
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type">Bencode.t</code> </pre>
+
+
+<pre><span id="VALoutput"><span class="keyword">val</span> output</span> : <code class="type"><a href="CConvBencode.html#TYPEt">t</a> <a href="CConv.Encode.html#TYPEoutput">CConv.Encode.output</a></code></pre>
+<pre><span id="VALsource"><span class="keyword">val</span> source</span> : <code class="type"><a href="CConvBencode.html#TYPEt">t</a> <a href="CConv.Decode.html#TYPEsource">CConv.Decode.source</a></code></pre>
+<pre><span id="VALencode"><span class="keyword">val</span> encode</span> : <code class="type">'src <a href="CConv.Encode.html#TYPEencoder">CConv.Encode.encoder</a> -> 'src -> <a href="CConvBencode.html#TYPEt">t</a></code></pre>
+<pre><span id="VALdecode_exn"><span class="keyword">val</span> decode_exn</span> : <code class="type">'into <a href="CConv.Decode.html#TYPEdecoder">CConv.Decode.decoder</a> -> <a href="CConvBencode.html#TYPEt">t</a> -> 'into</code></pre>
+<pre><span id="VALdecode"><span class="keyword">val</span> decode</span> : <code class="type">'into <a href="CConv.Decode.html#TYPEdecoder">CConv.Decode.decoder</a> -> <a href="CConvBencode.html#TYPEt">t</a> -> 'into <a href="CConvBencode.html#TYPEor_error">or_error</a></code></pre>
+<pre><span id="VALto_string"><span class="keyword">val</span> to_string</span> : <code class="type">'a <a href="CConv.Encode.html#TYPEencoder">CConv.Encode.encoder</a> -> 'a -> string</code></pre>
+<pre><span id="VALof_string"><span class="keyword">val</span> of_string</span> : <code class="type">'a <a href="CConv.Decode.html#TYPEdecoder">CConv.Decode.decoder</a> -> string -> 'a <a href="CConvBencode.html#TYPEor_error">or_error</a></code></pre>
+<pre><span id="VALof_string_exn"><span class="keyword">val</span> of_string_exn</span> : <code class="type">'a <a href="CConv.Decode.html#TYPEdecoder">CConv.Decode.decoder</a> -> string -> 'a</code></pre>
+<pre><span id="VALbencode_to_string"><span class="keyword">val</span> bencode_to_string</span> : <code class="type"><a href="CConvBencode.html#TYPEt">t</a> -> string</code></pre></body></html>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="CConvBencode.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="CConv" rel="Chapter" href="CConv.html">
+<link title="CConvBencode" rel="Chapter" href="CConvBencode.html">
+<link title="CConvSexp" rel="Chapter" href="CConvSexp.html">
+<link title="CConvYojson" rel="Chapter" href="CConvYojson.html">
+<link title="CConvPSexp" rel="Chapter" href="CConvPSexp.html"><link title="Encode" rel="Section" href="#2_Encode">
+<title>CConv</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="CConvBencode.html" title="CConvBencode">Next</a>
+</div>
+<h1>Module <a href="type_CConv.html">CConv</a></h1>
+
+<pre><span id="MODULECConv"><span class="keyword">module</span> CConv</span>: <code class="code">sig</code> <a href="CConv.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<h2 id="1_BidirectionalConversion">Bidirectional Conversion</h2></div>
+</div>
+<hr width="100%">
+
+<pre><span id="EXCEPTIONConversionFailure"><span class="keyword">exception</span> ConversionFailure</span> <span class="keyword">of</span> <code class="type">string</code></pre>
+
+<pre><span id="TYPEsequence"><span class="keyword">type</span> <code class="type">'a</code> sequence</span> = <code class="type">('a -> unit) -> unit</code> </pre>
+
+
+<pre><span id="VALreport_error"><span class="keyword">val</span> report_error</span> : <code class="type">('a, Buffer.t, unit, 'b) Pervasives.format4 -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Helper to report conversion errors.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>ConversionFailure</code> if the conversion failed (!)</li>
+</ul>
+</div>
+<h3 id="2_Encode">Encode</h3>
+<p>Helps encoding values into a serialization format (building
+values of some type 'a, such as a JSON tree)</p>
+
+<pre><span id="MODULEEncode"><span class="keyword">module</span> <a href="CConv.Encode.html">Encode</a></span>: <code class="code">sig</code> <a href="CConv.Encode.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEDecode"><span class="keyword">module</span> <a href="CConv.Decode.html">Decode</a></span>: <code class="code">sig</code> <a href="CConv.Decode.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Decode</p>
+
+</div>
+
+<pre><span id="TYPEor_error"><span class="keyword">type</span> <code class="type">'a</code> or_error</span> = <code class="type">[ `Error of string | `Ok of 'a ]</code> </pre>
+
+
+<pre><span id="VALencode"><span class="keyword">val</span> encode</span> : <code class="type">'src <a href="CConv.Encode.html#TYPEencoder">Encode.encoder</a> -> 'into <a href="CConv.Encode.html#TYPEoutput">Encode.output</a> -> 'src -> 'into</code></pre><div class="info ">
+<div class="info-desc">
+<p>Encode a value into the serialization format <code class="code">'into</code></p>
+</div>
+</div>
+
+<pre><span id="VALto_string"><span class="keyword">val</span> to_string</span> : <code class="type">'src <a href="CConv.Encode.html#TYPEencoder">Encode.encoder</a> -> 'src -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p>Use <a href="CConv.Encode.html#VALstring_target"><code class="code">CConv.Encode.string_target</code></a> to print the value</p>
+</div>
+</div>
+
+<pre><span id="VALdecode_exn"><span class="keyword">val</span> decode_exn</span> : <code class="type">'src <a href="CConv.Decode.html#TYPEsource">Decode.source</a> -> 'into <a href="CConv.Decode.html#TYPEdecoder">Decode.decoder</a> -> 'src -> 'into</code></pre><div class="info ">
+<div class="info-desc">
+<p>Decode a serialized value</p>
+</div>
+</div>
+
+<pre><span id="VALdecode"><span class="keyword">val</span> decode</span> : <code class="type">'src <a href="CConv.Decode.html#TYPEsource">Decode.source</a> -><br>       'into <a href="CConv.Decode.html#TYPEdecoder">Decode.decoder</a> -> 'src -> 'into <a href="CConv.html#TYPEor_error">or_error</a></code></pre></body></html>
