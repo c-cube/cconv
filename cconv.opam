@@ -1,16 +1,14 @@
 name: "cconv"
 version: "0.4"
-opam-version: "1.2"
+opam-version: "2.0"
+synopsis: "Combinators for Type Conversion in OCaml"
 author: "Simon Cruanes"
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
     ["jbuilder" "build" "-p" name "-j" jobs]
+    ["jbuilder" "build" "@doc" "-p" name] {with-doc}
+    ["jbuilder" "runtest" "-p" name] {with-test}
 ]
-install: [
-    [make "install"]
-]
-build-doc: [ make "doc" ]
-build-test: [ make "test" ]
 depends: [
     "ocamlfind" {build}
     "jbuilder"  {build}
@@ -19,19 +17,14 @@ depopts: [
     "bencode"
     "sexplib"
     "yojson"
-    "ppx_deriving"
+    "ppx_deriving" { >= "2.0" }
     "ppx_driver"
     "cppo"      {build}
     "ppx_tools" {build}
+    "ocaml" { >= "4.01.0" }
 ]
 tags: ["conversion" "gadt" "serialization"]
 homepage: "https://github.com/c-cube/cconv/"
-doc: "http://cedeela.fr/~simon/software/cconv/"
-available: [
-    ocaml-version >= "4.01.0"
-]
-conflicts: [
-  "ppx_deriving" { < "2.0" }
-]
-dev-repo: "https://github.com/c-cube/cconv.git"
+doc: "https://c-cube.github.io/cconv"
+dev-repo: "git+https://github.com/c-cube/cconv.git"
 bug-reports: "https://github.com/c-cube/cconv/issues/"

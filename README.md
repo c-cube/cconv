@@ -3,7 +3,7 @@ CConv
 
 Combinators for Type Conversion in OCaml.
 
-Documentation can be found [here](http://cedeela.fr/~simon/software/cconv/CConv.html),
+Documentation can be found [here](https://c-cube.github.io/cconv),
 and some toy examples in the `example` directory.
 
 ## Build and Install
