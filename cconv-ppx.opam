@@ -1,4 +1,4 @@
-name: "cconv"
+name: "cconv-ppx"
 version: "0.4"
 opam-version: "2.0"
 synopsis: "Combinators for Type Conversion in OCaml"
@@ -12,14 +12,14 @@ build: [
 depends: [
     "ocamlfind" {build}
     "jbuilder"  {build}
+    "cconv"
+    "ppx_deriving" { >= "2.0" }
+    "ppx_driver"
+    "cppo"      {build}
+    "ppx_tools" {build}
+    "ocaml" { >= "4.02" }
 ]
-depopts: [
-    "bencode"
-    "sexplib"
-    "yojson"
-    "ocaml" { >= "4.01.0" }
-]
-tags: ["conversion" "gadt" "serialization"]
+tags: ["conversion" "gadt" "serialization" "ppx-deriving"]
 homepage: "https://github.com/c-cube/cconv/"
 doc: "https://c-cube.github.io/cconv"
 dev-repo: "git+https://github.com/c-cube/cconv.git"

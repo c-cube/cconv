@@ -2,8 +2,8 @@
 
 (library
  ((name ppx_deriving_cconv)
-  (public_name cconv.ppx)
-  (synopsis "[@@deriving cconv]")
+  (public_name cconv-ppx)
+  (synopsis "ppx deriving interface for cconv: [@@deriving cconv]")
   (kind ppx_deriver)
   (libraries (ppx_deriving.api))
   (optional)
