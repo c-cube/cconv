@@ -1,5 +1,4 @@
-CConv
-=====
+# CConv  [![build status](https://travis-ci.org/c-cube/cconv.svg?branch=master)](https://travis-ci.org/c-cube/cconv)
 
 Combinators for Type Conversion in OCaml.
 
