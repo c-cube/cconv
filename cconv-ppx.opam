@@ -14,7 +14,7 @@ depends: [
     "jbuilder"  {build}
     "cconv"
     "ppx_deriving" { >= "2.0" }
-    "ppx_driver"
+    "ppxlib"
     "cppo"      {build}
     "ppx_tools" {build}
     "ocaml" { >= "4.02" }
