@@ -24,6 +24,7 @@ depends: [
     "sexplib" {with-test}
     "yojson" {with-test}
     "bencode" {with-test}
+    "ounit" {with-test}
 ]
 tags: ["conversion" "gadt" "serialization" "ppx-deriving"]
 homepage: "https://github.com/c-cube/cconv/"
