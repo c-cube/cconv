@@ -150,8 +150,6 @@ module Encode : sig
       | Node (l,r) -> "node", [self.emit into l; self.emit into r]
     });;
   ]} *)
-
-  val option : 'a encoder -> 'a option encoder
 end
 
 (** {2 Decode}
@@ -200,7 +198,6 @@ module Decode : sig
   val string : string decoder
 
   val list : 'a decoder -> 'a list decoder
-  val option : 'a decoder -> 'a option decoder
   val array : 'a decoder -> 'a array decoder
   val sequence : 'a decoder -> 'a sequence decoder
 

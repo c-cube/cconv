@@ -1,0 +1,5 @@
+
+(library
+  (name CConv)
+  (public_name cconv)
+  (synopsis "Combinators for Conversion"))

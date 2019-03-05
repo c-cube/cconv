@@ -1,7 +1,0 @@
-(jbuild_version 1)
-
-(library
- ((name cConvPSexp)
-  (public_name cconv.psexp)
-  (synopsis "Combinators for Conversion (psexp)")
-  (libraries (cconv))))

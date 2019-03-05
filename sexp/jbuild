@@ -1,8 +1,0 @@
-(jbuild_version 1)
-
-(library
- ((name cConvSexp)
-  (public_name cconv.sexp)
-  (synopsis "Combinators for Conversion (sexplib)")
-  (optional)
-  (libraries (cconv sexplib))))

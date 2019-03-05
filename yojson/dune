@@ -1,0 +1,7 @@
+
+(library
+ (name CConvYojson)
+ (public_name cconv.yojson)
+ (synopsis "Combinators for Conversion (yojson)")
+ (optional)
+ (libraries cconv yojson))

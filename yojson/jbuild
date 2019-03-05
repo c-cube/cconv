@@ -1,8 +1,0 @@
-(jbuild_version 1)
-
-(library
- ((name cConvYojson)
-  (public_name cconv.yojson)
-  (synopsis "Combinators for Conversion (yojson)")
-  (optional)
-  (libraries (cconv yojson))))

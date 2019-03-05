@@ -1,8 +1,0 @@
-(jbuild_version 1)
-
-(library
- ((name cConvBencode)
-  (public_name cconv.bencode)
-  (synopsis "Combinators for Conversion (bencode)")
-  (optional)
-  (libraries (cconv bencode))))

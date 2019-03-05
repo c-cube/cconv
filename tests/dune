@@ -1,0 +1,10 @@
+
+(executable
+ (name run_tests_ppx)
+ (libraries cconv cconv.yojson cconv.bencode
+            yojson bencode oUnit)
+ (preprocess (pps ppx_deriving.std ppx_deriving_cconv)))
+
+(alias
+ (name    runtest)
+ (action  (run ./run_tests_ppx.exe)))

@@ -1,0 +1,7 @@
+
+(library
+ (name CConvSexp)
+ (public_name cconv.sexp)
+ (synopsis "Combinators for Conversion (sexplib)")
+ (optional)
+ (libraries cconv sexplib))

@@ -5,19 +5,24 @@ synopsis: "Combinators for Type Conversion in OCaml"
 author: "Simon Cruanes"
 maintainer: "simon.cruanes.2007@m4x.org"
 build: [
-    ["jbuilder" "build" "-p" name "-j" jobs]
-    ["jbuilder" "build" "@doc" "-p" name] {with-doc}
-    ["jbuilder" "runtest" "-p" name] {with-test}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "build" "@doc" "-p" name] {with-doc}
+    ["dune" "runtest" "-p" name] {with-test}
 ]
 depends: [
+    "dune" {build}
     "ocamlfind" {build}
-    "jbuilder"  {build}
     "cconv"
     "ppx_deriving" { >= "2.0" }
     "ppxlib"
     "cppo"      {build}
     "ppx_tools" {build}
     "ocaml" { >= "4.02" }
+
+    "mdx" {with-test}
+    "sexplib" {with-test}
+    "yojson" {with-test}
+    "bencode" {with-test}
 ]
 tags: ["conversion" "gadt" "serialization" "ppx-deriving"]
 homepage: "https://github.com/c-cube/cconv/"

@@ -1,0 +1,10 @@
+
+(executable
+ (name run_bench)
+ (libraries cconv cconv.yojson yojson benchmark ppx_deriving_yojson.runtime)
+ (preprocess (pps ppx_deriving_yojson)))
+
+(alias
+ (name    runbench)
+ (deps    run_bench.exe)
+ (action  (run %{deps} -p encode -p decode)))

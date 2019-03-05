@@ -1,0 +1,16 @@
+
+(library
+ (name ppx_deriving_cconv)
+ (public_name cconv-ppx)
+ (synopsis "ppx deriving interface for cconv: [@@deriving cconv]")
+ (kind ppx_deriver)
+ (libraries ppx_deriving.api)
+ (optional)
+ (preprocess
+  (action (run ppxfind -legacy ppx_tools.metaquot --as-pp %{input-file})))
+ (flags :standard -warn-error -a+8 -w -9-27))
+
+(rule
+ (targets ppx_deriving_cconv.ml)
+ (deps    ppx_deriving_cconv.cppo.ml)
+ (action  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{deps} -o %{targets})))

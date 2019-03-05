@@ -2,26 +2,26 @@ INSTALL_ARGS := $(if $(PREFIX),--prefix $(PREFIX),)
 
 # Default rule
 default:
-	@jbuilder build @install
+	@dune build @install
 
 install:
-	@jbuilder install $(INSTALL_ARGS)
+	@dune install $(INSTALL_ARGS)
 
 uninstall:
-	@jbuilder uninstall $(INSTALL_ARGS)
+	@dune uninstall $(INSTALL_ARGS)
 
 reinstall: uninstall reinstall
 
 doc:
-	@jbuilder build @doc
+	@dune build @doc
 
 test:
-	@jbuilder runtest --no-buffer
+	@dune runtest --no-buffer --force
 
 bench:
-	@jbuilder build @runbench --no-buffer
+	@dune build @runbench --no-buffer
 
 clean:
-	@jbuilder clean
+	@dune clean
 
 .PHONY: default install uninstall reinstall doc test bench clean
