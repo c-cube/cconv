@@ -17,6 +17,7 @@ depends: [
     "ppxlib"
     "cppo"      {build}
     "ppx_tools" {build}
+    "ppxfind" {build}
     "ocaml" { >= "4.02" }
 
     "mdx" {with-test}
