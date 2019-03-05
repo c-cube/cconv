@@ -4,6 +4,7 @@
  (public_name cconv-ppx)
  (synopsis "ppx deriving interface for cconv: [@@deriving cconv]")
  (kind ppx_deriver)
+ (ppx_runtime_libraries cconv)
  (libraries ppx_deriving.api)
  (optional)
  (preprocess
