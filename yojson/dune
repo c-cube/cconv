@@ -4,4 +4,5 @@
  (public_name cconv.yojson)
  (synopsis "Combinators for Conversion (yojson)")
  (optional)
+ (flags :standard -warn-error -3)
  (libraries cconv yojson))
