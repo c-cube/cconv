@@ -1,5 +1,5 @@
 name: "cconv"
-version: "0.4"
+version: "0.5"
 opam-version: "2.0"
 synopsis: "Combinators for Type Conversion in OCaml"
 author: "Simon Cruanes"
